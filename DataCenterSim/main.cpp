@@ -8,11 +8,23 @@
 
 #include <iostream>
 
+#include "PriorityQueueEventList.h"
+#include "PacketArrivalEvent.h"
+#include "VectorStatistics.h"
+
 int main(int argc, const char * argv[])
 {
-
-    // insert code here...
-    std::cout << "Hello, World!\n";
+    PriorityQueueEventList eventList;
+    VectorStatistics statistics;
+    
+    PacketArrivalEvent arrival(1.0);
+    
+    printf("Hello world.\n");
+    eventList.enqueue(arrival);
+    
+    IEvent& e = eventList.getMin();
+    e.processEvent(eventList, statistics);
+    
+    printf("Event size %f\n", eventList.getMin().time);
     return 0;
 }
-
