@@ -16,8 +16,8 @@
 class PacketArrivalEvent : public IEvent{
 
 public:
-    PacketArrivalEvent(double t) : IEvent(t){}
-    virtual void processEvent(IEventList& i, IStatistics& s);
+	PacketArrivalEvent(double t) : IEvent(t){}
+	virtual void processEvent(IEventList& i, IStatistics& s);
 };
 
 #endif /* defined(__DataCenterSim__PacketArrivalEvent__) */

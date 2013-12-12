@@ -12,11 +12,11 @@
 #include <iostream>
 
 class IStatistics {
-    
+	
 public:
-    virtual void add(int type, double statistic) = 0;
-    virtual double getMean(int type) = 0;
-    virtual double getStddev(int type) = 0;
+	virtual void add(int type, double statistic) = 0;
+	virtual double getMean(int type) = 0;
+	virtual double getStddev(int type) = 0;
 };
 
 #endif /* defined(__DataCenterSim__IStatistics__) */

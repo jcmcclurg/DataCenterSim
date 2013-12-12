@@ -15,13 +15,13 @@
 #include "IStatistics.h"
 
 class VectorStatistics : public IStatistics {
-    std::map<int, double> sums;
-    std::map<int, std::vector<double> > stats;
-    
+	std::map<int, double> sums;
+	std::map<int, std::vector<double> > stats;
+	
 public:
-    virtual void add(int type, double statistic);
-    virtual double getMean(int type);
-    virtual double getStddev(int type);
+	virtual void add(int type, double statistic);
+	virtual double getMean(int type);
+	virtual double getStddev(int type);
 };
 
 #endif /* defined(__DataCenterSim__VectorStatistics__) */

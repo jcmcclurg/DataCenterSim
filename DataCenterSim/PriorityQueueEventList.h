@@ -14,12 +14,12 @@
 #include "IEventList.h"
 
 class PriorityQueueEventList : public IEventList {
-    std::vector<IEvent*> list;
-    
+	std::vector<IEvent*> list;
+	
 public:
-    virtual void enqueue(IEvent& e);
-    virtual IEvent& getMin();
-    virtual void dequeue();
-    virtual void remove(IEvent& e);
+	virtual void enqueue(IEvent& e);
+	virtual IEvent& getMin();
+	virtual void dequeue();
+	virtual void remove(IEvent& e);
 };
 #endif /* defined(__DataCenterSim__PriorityQueueEventList__) */

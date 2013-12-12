@@ -14,10 +14,10 @@
 #include "IEventList.h"
 
 class PacketDepartureEvent : public IEvent{
-    
+	
 public:
-    PacketDepartureEvent(double t) : IEvent(t){}
-    virtual void processEvent(IEventList& i, IStatistics& s);
+	PacketDepartureEvent(double t) : IEvent(t){}
+	virtual void processEvent(IEventList& i, IStatistics& s);
 };
 
 #endif /* defined(__DataCenterSim__PacketDepartureEvent__) */

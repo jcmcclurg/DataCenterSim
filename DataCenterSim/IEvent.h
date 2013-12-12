@@ -14,13 +14,13 @@
 class IEventList;
 
 class IEvent {
-    
+	
 public:
-    double time;
-    IEvent(double t){
-        time = t;
-    }
-    virtual void processEvent(IEventList& i, IStatistics& s) = 0;
+	double time;
+	IEvent(double t){
+		time = t;
+	}
+	virtual void processEvent(IEventList& i, IStatistics& s) = 0;
 };
 
 #endif /* defined(__DataCenterSim__IEvent__) */
