@@ -15,17 +15,17 @@
 
 int main(int argc, const char * argv[])
 {
-    PriorityQueueEventList eventList;
-    VectorStatistics statistics;
-    
-    PacketArrivalEvent arrival(1.0);
-    
-    printf("Hello world.\n");
-    eventList.enqueue(arrival);
-    
-    IEvent& e = eventList.getMin();
-    e.processEvent(eventList, statistics);
-    
-    printf("Event size %f\n", eventList.getMin().time);
-    return 0;
+	PriorityQueueEventList eventList;
+	VectorStatistics statistics;
+
+	PacketArrivalEvent arrival(1.0);
+
+	printf("Hello world.\n");
+	eventList.enqueue(arrival);
+
+	IEvent& e = eventList.getMin();
+	e.processEvent(eventList, statistics);
+
+	printf("Event size %f\n", eventList.getMin().time);
+	return 0;
 }

@@ -10,7 +10,7 @@
 #include "PacketDepartureEvent.h"
 
 void PacketDepartureEvent::processEvent(IEventList& i, IStatistics& s){
-    i.dequeue();
-    
-    printf("Packet departed at time %f.\n", this->time);
+	i.dequeue();
+	
+	printf("Packet departed at time %f.\n", this->time);
 }
