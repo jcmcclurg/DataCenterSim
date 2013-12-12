@@ -15,8 +15,8 @@
 #include "IStatistics.h"
 
 class VectorStatistics : public IStatistics {
-    std::map<int,double> sums;
-    std::map<int,std::vector<double>> stats;
+    std::map<int, double> sums;
+    std::map<int, std::vector<double> > stats;
     
 public:
     virtual void add(int type, double statistic);
