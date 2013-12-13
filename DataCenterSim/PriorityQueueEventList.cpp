@@ -40,7 +40,7 @@ void PriorityQueueEventList::remove(EventPtr e){
 #ifdef DEBUG
 	std::cout << "Trying to remove element " << *e << std::endl;
 #endif
-	int removeCount = 0;
+
 	for (PriorityQueue::iterator it = this->list.begin(); it != this->list.end(); ++it){
 		EventPtr ptr = *it;
 		if(*ptr == *e){
