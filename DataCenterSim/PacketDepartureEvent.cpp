@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include "PacketDepartureEvent.h"
 
-void PacketDepartureEvent::processEvent(IEventList& i, IStatistics& s){
-	i.dequeue();
+void PacketDepartureEvent::processEvent(){
+	this->eventList->dequeue();
 	
 	printf("Packet departed at time %f.\n", this->time);
 }

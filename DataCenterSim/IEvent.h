@@ -15,17 +15,24 @@
 #include "IStatistics.h"
 class IEventList;
 
+typedef typename boost::shared_ptr<IEventList> EventListPtr;
+
 class IEvent {
+protected:
 	virtual std::ostream& dump(std::ostream& o) {
       return o << "Event{time=" << this->time << "}";
    }
+	StatisticsPtr statistics;
+	EventListPtr eventList;
 	
 public:
 	double time;
-	IEvent(double t){
-		time = t;
+	IEvent(double t, EventListPtr el, StatisticsPtr st){
+		this->eventList = el;
+		this->time = t;
+		this->statistics = st;
 	}
-	virtual void processEvent(IEventList& i, IStatistics& s) = 0;
+	virtual void processEvent() = 0;
 
 	friend std::ostream& operator<< (std::ostream& out, IEvent& e);
 	friend bool operator< (IEvent& a, IEvent& b);
