@@ -9,7 +9,9 @@
 #ifndef __DataCenterSim__IEvent__
 #define __DataCenterSim__IEvent__
 
+#include <boost/shared_ptr.hpp>
 #include <iostream>
+#include <sstream>
 #include "IStatistics.h"
 class IEventList;
 
@@ -21,6 +23,12 @@ public:
 		time = t;
 	}
 	virtual void processEvent(IEventList& i, IStatistics& s) = 0;
+
+	friend std::ostream& operator<< (std::ostream& out, IEvent& e);
+	friend bool operator< (IEvent& a, IEvent& b);
+	friend bool operator== (IEvent& a, IEvent& b);
 };
+
+typedef typename boost::shared_ptr<IEvent> EventPtr;
 
 #endif /* defined(__DataCenterSim__IEvent__) */

@@ -16,10 +16,10 @@ class IEventList{
 	
 public:
 	virtual ~IEventList() {}
-	virtual void enqueue(IEvent& e) = 0;
-	virtual IEvent& getMin() = 0;
+	virtual void enqueue(EventPtr e) = 0;
+	virtual EventPtr getMin() = 0;
 	virtual void dequeue() = 0;
-	virtual void remove(IEvent& e) = 0;
+	virtual void remove(EventPtr e) = 0;
 };
 
 #endif /* defined(__DataCenterSim__IEventList__) */

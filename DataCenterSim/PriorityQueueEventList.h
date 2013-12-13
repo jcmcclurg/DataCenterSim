@@ -11,15 +11,20 @@
 
 #include <iostream>
 #include <vector>
+#include <boost/heap/fibonacci_heap.hpp>
+#include <boost/shared_ptr.hpp>
+#include "IEvent.h"
 #include "IEventList.h"
 
+typedef typename boost::heap::fibonacci_heap<EventPtr> PriorityQueue;
+
 class PriorityQueueEventList : public IEventList {
-	std::vector<IEvent*> list;
+	PriorityQueue list;
 	
 public:
-	virtual void enqueue(IEvent& e);
-	virtual IEvent& getMin();
+	virtual void enqueue(EventPtr e);
+	virtual EventPtr getMin();
 	virtual void dequeue();
-	virtual void remove(IEvent& e);
+	virtual void remove(EventPtr e);
 };
 #endif /* defined(__DataCenterSim__PriorityQueueEventList__) */
