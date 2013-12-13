@@ -14,7 +14,9 @@
 #include "IEventList.h"
 
 class PacketDepartureEvent : public IEvent{
-	
+	virtual std::ostream& dump(std::ostream& o) {
+      return o << "PacketDepartureEvent{time=" << this->time << "}";
+   }
 public:
 	PacketDepartureEvent(double t) : IEvent(t){}
 	virtual void processEvent(IEventList& i, IStatistics& s);

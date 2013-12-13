@@ -16,6 +16,9 @@
 class IEventList;
 
 class IEvent {
+	virtual std::ostream& dump(std::ostream& o) {
+      return o << "Event{time=" << this->time << "}";
+   }
 	
 public:
 	double time;
