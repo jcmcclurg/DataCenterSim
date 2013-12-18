@@ -9,44 +9,34 @@
 #include <vector>
 #include <iostream>
 #include "PriorityQueueEventList.h"
-#include "IEvent.h"
+#include "Event.h"
+#include "Debug.h"
 
 void PriorityQueueEventList::enqueue(EventPtr e){
-#ifdef DEBUG
-	std::cout << "Enqueueing " << *e << std::endl;
-#endif
+	_log(3,"Enqueueing " << *e << std::endl);
 	this->list.push(e);
 }
 
 EventPtr PriorityQueueEventList::getMin(){
-#ifdef DEBUG
-	std::cout << "Minimum is " << *(this->list.top()) << std::endl;
-#endif
+	_log(3,"Minimum is " << *(this->list.top()) << std::endl);
 	return this->list.top();
 }
 
 void PriorityQueueEventList::dequeue(){
-#ifdef DEBUG
-	std::cout << "Dequeueing " << *(this->list.top()) << std::endl;
-#endif
+	_log(3,"Dequeueing " << *(this->list.top()) << std::endl);
 	this->list.pop();
 }
 
 void PriorityQueueEventList::remove(EventPtr e){
-	//typedef PriorityQueue::handle_type handle_t;
 	typedef typename PriorityQueue::handle_type handle_t;
-	//typedef boost::heap::priority_queue<EventPtr>::handle_type handle_t;
 
-#ifdef DEBUG
-	std::cout << "Trying to remove element " << *e << std::endl;
-#endif
+	_log(3,"Trying to remove element " << *e << std::endl);
 
 	for (PriorityQueue::iterator it = this->list.begin(); it != this->list.end(); ++it){
 		EventPtr ptr = *it;
 		if(*ptr == *e){
-#ifdef DEBUG
-			std::cout << "Removing element " << *ptr;
-#endif
+			_log(3,std::cout << "Removing element " << *ptr);
+
 			handle_t h = PriorityQueue::s_handle_from_iterator(it);
 			this->list.erase(h);
 		}

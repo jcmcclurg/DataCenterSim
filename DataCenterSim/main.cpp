@@ -57,9 +57,11 @@
  */
 
 #include <iostream>
+#include <boost/pointer_cast.hpp>
 #include "PriorityQueueEventList.h"
-#include "PacketArrivalEvent.h"
 #include "VectorStatistics.h"
+#include "Debug.h"
+#include "JobEvent.h"
 
 #define MAX_TIME 10.0
 
@@ -81,21 +83,32 @@ int main(int argc, const char * argv[]){
 	StatisticsPtr statistics(new VectorStatistics());
 	double time = 0;
 	
-	EventPtr arrival(new PacketArrivalEvent(time, eventList, statistics));
+	JobEventPtr arrival(new JobEvent(MAX_TIME, Event::JOB_ARRIVAL));
 	
-#ifdef DEBUG
-	std::cout << "Initialization parameters: (none yet)" << std::endl;
-#endif
+	_logl(0,"Welcome to the data center stacked server simulator.");
+	_logl(1,"Initialization parameters: (none yet)");
 
 	// Queue up initial arrival.
 	eventList->enqueue(arrival);
 	
 	while(time < MAX_TIME){
-		EventPtr e = eventList->getMin();
+		EventPtr e = arrival;
+		//EventPtr e = eventList->getMin();
+		//eventList->dequeue();
 		time = e->time;
-		e->processEvent();
+
+		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
+			JobEventPtr d = boost::static_pointer_cast<JobEvent>(e);
+			_log(2,"Processing job event.");
+		}
+		else if(e->type == Event::SORTED_QUEUE_READY){
+			_logl(2,"Processing sorted queue event.");
+		}
+		else if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
+			_logl(2,"Processing working servers queue event.");
+		}
 	}
 	
-	std::cout << "Finished simulation after " << time << " seconds." << std::endl;
+	_logl(1,"Finished simulation after " << time << " seconds.");
 	return 0;
 }

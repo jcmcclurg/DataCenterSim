@@ -24,17 +24,20 @@ protected:
 	virtual bool equals(Event& other){
 		return((this->time == other.time) && (this->type == other.type));
 	}
-	virtual ostream& toStream(std::ostream& out){
+	virtual std::ostream& toStream(std::ostream& out){
 		return(out << "Event{time="<< this->time << ",type=" << this->type << "}");
 	}
 public:
-	double time;
-	int type;
+	enum EventType { JOB_ARRIVAL, SORTED_QUEUE_READY, JOB_FINISHED, WORKING_SERVERS_QUEUE_READY };
 
-	Event(double t, int i){
+	double time;
+	Event::EventType type;
+
+	Event(double t, Event::EventType i){
 		this->time = t;
 		this->type = i;
 	}
+	virtual ~Event(){}
 
 	friend std::ostream& operator<< (std::ostream& out, Event& e);
 	friend bool operator< (Event& a, Event& b);

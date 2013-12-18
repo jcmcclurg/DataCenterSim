@@ -13,7 +13,7 @@
 #include <vector>
 #include <boost/heap/fibonacci_heap.hpp>
 #include <boost/shared_ptr.hpp>
-#include "IEvent.h"
+#include "Event.h"
 #include "IEventList.h"
 
 typedef typename boost::heap::fibonacci_heap<EventPtr> PriorityQueue;

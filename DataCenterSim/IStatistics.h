@@ -10,10 +10,12 @@
 #define __DataCenterSim__IStatistics__
 
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 
 class IStatistics {
 	
 public:
+	virtual ~IStatistics(){}
 	virtual void add(int type, double statistic) = 0;
 	virtual double getMean(int type) = 0;
 	virtual double getStddev(int type) = 0;
