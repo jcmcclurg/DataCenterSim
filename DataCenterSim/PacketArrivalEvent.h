@@ -12,12 +12,15 @@
 #include <iostream>
 #include "IEvent.h"
 #include "IEventList.h"
-
+#include "IStatistics.h"
 class PacketArrivalEvent : public IEvent{
-
+	virtual std::ostream& dump(std::ostream& o) {
+      return o << "PacketArrivalEvent{time=" << this->time << "}";
+   }
+	
 public:
-	PacketArrivalEvent(double t) : IEvent(t){}
-	virtual void processEvent(IEventList& i, IStatistics& s);
+	PacketArrivalEvent(double t, EventListPtr p, StatisticsPtr s) : IEvent(t, p, s){}
+	virtual void processEvent();
 };
 
 #endif /* defined(__DataCenterSim__PacketArrivalEvent__) */

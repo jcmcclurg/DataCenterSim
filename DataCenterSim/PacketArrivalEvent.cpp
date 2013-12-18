@@ -10,16 +10,18 @@
 #include "PacketArrivalEvent.h"
 #include "PacketDepartureEvent.h"
 
-void PacketArrivalEvent::processEvent(IEventList& i, IStatistics& s){
+void PacketArrivalEvent::processEvent(){
 #ifdef DEBUG
 	std::cout << "Packet arrived at time " << this->time << std::endl;
 #endif
 	// Dequeue the arrival packet.
-	i.dequeue();
+	this->eventList->dequeue();
 	
-	// TODO: Schedule the next arrival.
+	// TODO: Sample from distribution.
+	EventPtr nextArrival(new PacketArrivalEvent(this->time + 1.0, this->eventList, this->statistics));
+	this->eventList->enqueue(nextArrival);
 
 	// Schedule the departure
-	EventPtr e(new PacketDepartureEvent(this->time + 1.0));
-	i.enqueue(e);
+	EventPtr e(new PacketDepartureEvent(this->time + 1.0, this->eventList, this->statistics));
+	this->eventList->enqueue(e);
 }

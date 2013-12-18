@@ -19,4 +19,6 @@ public:
 	virtual double getStddev(int type) = 0;
 };
 
+typedef typename boost::shared_ptr<IStatistics> StatisticsPtr;
+
 #endif /* defined(__DataCenterSim__IStatistics__) */

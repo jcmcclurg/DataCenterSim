@@ -10,7 +10,12 @@
 #define __DataCenterSim__IEventList__
 
 #include <iostream>
+<<<<<<< HEAD
 #include "Event.h"
+=======
+#include <boost/shared_ptr.hpp>
+#include "IEvent.h"
+>>>>>>> 38b9aee14a982d44586f559703963aedd0d916d2
 
 class IEventList{
 	
