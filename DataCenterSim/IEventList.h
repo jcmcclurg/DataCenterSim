@@ -10,7 +10,7 @@
 #define __DataCenterSim__IEventList__
 
 #include <iostream>
-#include "IEvent.h"
+#include "Event.h"
 
 class IEventList{
 	
