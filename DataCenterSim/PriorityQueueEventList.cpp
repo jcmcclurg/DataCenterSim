@@ -13,24 +13,24 @@
 #include "Debug.h"
 
 void PriorityQueueEventList::enqueue(EventPtr e){
-	_log(3,"Enqueueing " << *e << std::endl);
+	_logl(3,"Enqueueing " << *e << std::endl);
 	this->list.push(e);
 }
 
 EventPtr PriorityQueueEventList::getMin(){
-	_log(3,"Minimum is " << *(this->list.top()) << std::endl);
+	_logl(3,"Minimum is " << *(this->list.top()));
 	return this->list.top();
 }
 
 void PriorityQueueEventList::dequeue(){
-	_log(3,"Dequeueing " << *(this->list.top()) << std::endl);
+	_logl(3,"Dequeueing " << *(this->list.top()));
 	this->list.pop();
 }
 
 void PriorityQueueEventList::remove(EventPtr e){
 	typedef typename PriorityQueue::handle_type handle_t;
 
-	_log(3,"Trying to remove element " << *e << std::endl);
+	_logl(3,"Trying to remove element " << *e);
 
 	for (PriorityQueue::iterator it = this->list.begin(); it != this->list.end(); ++it){
 		EventPtr ptr = *it;

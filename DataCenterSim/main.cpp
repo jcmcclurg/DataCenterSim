@@ -59,7 +59,7 @@
 #include <iostream>
 #include <boost/pointer_cast.hpp>
 #include "PriorityQueueEventList.h"
-#include "VectorStatistics.h"
+#include "AccumulatorStatistics.h"
 #include "Debug.h"
 #include "JobEvent.h"
 
@@ -80,7 +80,7 @@
 
 int main(int argc, const char * argv[]){
 	EventListPtr eventList(new PriorityQueueEventList());
-	StatisticsPtr statistics(new VectorStatistics());
+	StatisticsPtr statistics(new AccumulatorStatistics());
 	double time = 0;
 	
 	JobEventPtr arrival(new JobEvent(MAX_TIME, Event::JOB_ARRIVAL));
@@ -92,14 +92,13 @@ int main(int argc, const char * argv[]){
 	eventList->enqueue(arrival);
 	
 	while(time < MAX_TIME){
-		EventPtr e = arrival;
-		//EventPtr e = eventList->getMin();
-		//eventList->dequeue();
+		EventPtr e = eventList->getMin();
+		eventList->dequeue();
 		time = e->time;
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
 			JobEventPtr d = boost::static_pointer_cast<JobEvent>(e);
-			_log(2,"Processing job event.");
+			_logl(2,"Processing job event.");
 		}
 		else if(e->type == Event::SORTED_QUEUE_READY){
 			_logl(2,"Processing sorted queue event.");
