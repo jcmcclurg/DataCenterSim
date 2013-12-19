@@ -14,15 +14,17 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <boost/shared_ptr.hpp>
 #include "Event.h"
-#include "IEventList.h"
 
 typedef typename boost::heap::fibonacci_heap<EventPtr> PriorityQueue;
 
-class PriorityQueueEventList : public IEventList {
+class PriorityQueueEventList {
 	PriorityQueue list;
 	
 public:
-	PriorityQueueEventList() : IEventList() {
+	PriorityQueueEventList() {
+
+	}
+	virtual ~PriorityQueueEventList() {
 
 	}
 	virtual void enqueue(EventPtr e);

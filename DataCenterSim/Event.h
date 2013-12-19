@@ -12,9 +12,6 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <sstream>
-#include "IStatistics.h"
-
-class IEventList;
 
 class Event {
 protected:
