@@ -68,6 +68,10 @@
 #include "JobEvent.h"
 #include "DataCenterRandom.h"
 
+#ifdef UNITTEST
+#include "UnitTest.h"
+#endif
+
 #define MAX_TIME 0.01
 #define EVENT_LIST_LEN LONG_MAX
 #define UNSORTED_JOBS_LIST_LEN 10000
@@ -123,6 +127,8 @@ int main(int argc, const char * argv[]){
 	PriorityQueueWorkingServers workingServersQueue(NUM_SERVERS);
 
 	AccumulatorStatistics statistics;
+
+#ifndef UNITTEST
 	double time = 0;
 	
 	JobEventPtr arrival(new JobEvent(0, Event::JOB_ARRIVAL));
@@ -164,4 +170,11 @@ int main(int argc, const char * argv[]){
 	
 	_logl(1,"Finished simulation after " << time << " seconds.");
 	return 0;
+
+// Run the Unit tests
+#else
+	_logl(0,"Welcome to the unit tests.");
+	test_accumulator(rand,statistics);
+	return 0;
+#endif
 }

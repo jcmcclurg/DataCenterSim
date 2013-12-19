@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <map>
+#include <boost/shared_ptr.hpp>
 #include "Accumulator.h"
 
 class AccumulatorStatistics {
@@ -18,17 +19,17 @@ class AccumulatorStatistics {
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
 		return out << "AccumulatorStatistics{"<< std::endl
-				<< "   TIME_BETWEEN_REJECTED_JOBS: " << stats[TIME_BETWEEN_REJECTED_JOBS] << std::endl
-				<< "   TOTAL_ENERGY: " << stats[TOTAL_ENERGY]  << std::endl
-				<< "   LATENCY: " << stats[LATENCY]  << std::endl
+				<< "   TIME_BETWEEN_REJECTED_JOBS: " << stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] << std::endl
+				<< "   TOTAL_ENERGY: " << stats[AccumulatorStatistics::TOTAL_ENERGY]  << std::endl
+				<< "   LATENCY: " << stats[AccumulatorStatistics::LATENCY]  << std::endl
 				<< "}";
 	}
 public:
 	enum StatisticType{TIME_BETWEEN_REJECTED_JOBS, TOTAL_ENERGY, LATENCY};
 	AccumulatorStatistics(){
-		stats[TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator());
-		stats[TOTAL_ENERGY] = AccumulatorPtr(new Accumulator());
-		stats[LATENCY] = AccumulatorPtr(new Accumulator());
+		stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator());
+		stats[AccumulatorStatistics::TOTAL_ENERGY] = AccumulatorPtr(new Accumulator());
+		stats[AccumulatorStatistics::LATENCY] = AccumulatorPtr(new Accumulator());
 	}
 	virtual ~AccumulatorStatistics(){
 

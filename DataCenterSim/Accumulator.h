@@ -14,6 +14,7 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/shared_ptr.hpp>
 #include <cmath>
+#include "Debug.h"
 
 #include <boost/math/distributions/students_t.hpp>
 
@@ -40,6 +41,7 @@ public:
 	}
 
 	virtual void add(double statistic){
+		_logl(3,"Accumulating " << statistic);
 		this->accumulator(statistic);
 	}
 
@@ -61,6 +63,8 @@ public:
 		double correctionFactor = n/(n-1);
 		return std::sqrt((double) (correctionFactor*boost::accumulators::variance(this->accumulator)));
 	}
+
+	friend std::ostream& operator<< (std::ostream& out, Accumulator& e);
 };
 
 typedef typename boost::shared_ptr<Accumulator> AccumulatorPtr;
