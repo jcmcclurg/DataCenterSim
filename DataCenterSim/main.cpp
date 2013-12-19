@@ -62,8 +62,9 @@
 #include "AccumulatorStatistics.h"
 #include "Debug.h"
 #include "JobEvent.h"
+#include "DataCenterRandom.h"
 
-#define MAX_TIME 10.0
+#define MAX_TIME 0.01
 
 /*
  1. Job arrives, with type chosen according to distribution. Schedule next job according to distribution.
@@ -79,26 +80,63 @@
  */
 
 int main(int argc, const char * argv[]){
-	EventListPtr eventList(new PriorityQueueEventList());
-	StatisticsPtr statistics(new AccumulatorStatistics());
+	double seed = 0;
+
+	double power_mean = 300;				// Watts
+	double power_stdev = power_mean/10;
+
+	double arrival_rate = 100;				// Jobs per second
+
+	double completion_time_mean = 0.001;	// Seconds
+	double completion_time_stdev = completion_time_mean/10;
+
+	double sorting_time_min = completion_time_mean/100;
+	double sorting_time_max = sorting_time_min*2;
+
+	double routing_time_min = sorting_time_min;
+	double routing_time_max = sorting_time_max;
+
+	DataCenterRandom rand(
+			seed,
+			power_mean,
+			power_stdev,
+			arrival_rate,
+			completion_time_mean,
+			completion_time_stdev,
+			sorting_time_min,
+			sorting_time_max,
+			routing_time_min,
+			routing_time_max);
+
+	PriorityQueueEventList eventList;
+	AccumulatorStatistics statistics;
 	double time = 0;
 	
-	JobEventPtr arrival(new JobEvent(MAX_TIME, Event::JOB_ARRIVAL));
+	JobEventPtr arrival(new JobEvent(0, Event::JOB_ARRIVAL));
 	
 	_logl(0,"Welcome to the data center stacked server simulator.");
-	_logl(1,"Initialization parameters: (none yet)");
+	_logl(1,"Initialization parameters: ");
+	_logl(1,"Simulation time: " << MAX_TIME);
+	_logl(1, rand);
 
 	// Queue up initial arrival.
-	eventList->enqueue(arrival);
+	eventList.enqueue(arrival);
 	
 	while(time < MAX_TIME){
-		EventPtr e = eventList->getMin();
-		eventList->dequeue();
+		EventPtr e = eventList.getMin();
+		eventList.dequeue();
 		time = e->time;
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
 			JobEventPtr d = boost::static_pointer_cast<JobEvent>(e);
 			_logl(2,"Processing job event.");
+			if(e->type == Event::JOB_ARRIVAL){
+				double t = time + rand.sample_arrivalTimeDistribution();
+				_logl(2,"Scheduling new job arrival at time " << t);
+
+				JobEventPtr j(new JobEvent(t, Event::JOB_ARRIVAL));
+				eventList.enqueue(j);
+			}
 		}
 		else if(e->type == Event::SORTED_QUEUE_READY){
 			_logl(2,"Processing sorted queue event.");

@@ -17,6 +17,7 @@
 class IEventList{
 	
 public:
+	IEventList() {}
 	virtual ~IEventList() {}
 	virtual void enqueue(EventPtr e) = 0;
 	virtual EventPtr getMin() = 0;
@@ -24,6 +25,6 @@ public:
 	virtual void remove(EventPtr e) = 0;
 };
 
-typedef typename boost::shared_ptr<IEventList> EventListPtr;
+//typedef typename boost::shared_ptr<IEventList> EventListPtr;
 
 #endif /* defined(__DataCenterSim__IEventList__) */

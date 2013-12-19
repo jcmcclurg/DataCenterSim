@@ -22,6 +22,9 @@ class PriorityQueueEventList : public IEventList {
 	PriorityQueue list;
 	
 public:
+	PriorityQueueEventList() : IEventList() {
+
+	}
 	virtual void enqueue(EventPtr e);
 	virtual EventPtr getMin();
 	virtual void dequeue();

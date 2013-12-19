@@ -14,7 +14,9 @@
 class JobEvent : public Event {
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
-		return(out << "JobEvent{time="<< this->time << ",type=" << this->type << "}");
+		out << "Job";
+		Event::toStream(out);
+		return(out);
 	}
 public:
 	enum PriorityType {DIFFERENTIAL_CURRENT,POWER_ESTIMATE,TIME};
