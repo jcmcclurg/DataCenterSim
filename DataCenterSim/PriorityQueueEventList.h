@@ -10,26 +10,35 @@
 #define __DataCenterSim__PriorityQueueEventList__
 
 #include <iostream>
-#include <vector>
-#include <boost/heap/fibonacci_heap.hpp>
-#include <boost/shared_ptr.hpp>
+#include "BoundedPriorityQueue.h"
 #include "Event.h"
+#include "Debug.h"
 
-typedef typename boost::heap::fibonacci_heap<EventPtr> PriorityQueue;
-
-class PriorityQueueEventList {
-	PriorityQueue list;
-	
+class PriorityQueueEventList : public BoundedPriorityQueue {
+protected:
+	virtual std::ostream& toStream(std::ostream& out){
+		out << "PriorityQueueEventList";
+		BoundedPriorityQueue::toStream(out);
+		return(out);
+	}
 public:
-	PriorityQueueEventList() {
-
+	PriorityQueueEventList(long size) : BoundedPriorityQueue(size) {
 	}
-	virtual ~PriorityQueueEventList() {
 
+	virtual void remove(EventPtr e){
+		typedef typename SortedJobQueue::handle_type handle_t;
+
+		_logl(3,"Trying to remove element " << *e);
+
+		for (SortedJobQueue::iterator it = this->queue.begin(); it != this->queue.end(); ++it){
+			EventPtr ptr = *it;
+			if(*ptr == *e){
+				_log(3,std::cout << "Removing element " << *ptr);
+
+				handle_t h = SortedJobQueue::s_handle_from_iterator(it);
+				this->queue.erase(h);
+			}
+		}
 	}
-	virtual void enqueue(EventPtr e);
-	virtual EventPtr getMin();
-	virtual void dequeue();
-	virtual void remove(EventPtr e);
 };
 #endif /* defined(__DataCenterSim__PriorityQueueEventList__) */

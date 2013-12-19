@@ -57,14 +57,22 @@
  */
 
 #include <iostream>
+#include <climits>
 #include <boost/pointer_cast.hpp>
 #include "PriorityQueueEventList.h"
+#include "PriorityQueueJobSorter.h"
+#include "PriorityQueueWorkingServers.h"
+#include "QueueJobBuffer.h"
 #include "AccumulatorStatistics.h"
 #include "Debug.h"
 #include "JobEvent.h"
 #include "DataCenterRandom.h"
 
 #define MAX_TIME 0.01
+#define EVENT_LIST_LEN LONG_MAX
+#define UNSORTED_JOBS_LIST_LEN 10000
+#define SORTED_JOBS_LIST_LEN UNSORTED_JOBS_LIST_LEN
+#define NUM_SERVERS 100
 
 /*
  1. Job arrives, with type chosen according to distribution. Schedule next job according to distribution.
@@ -108,7 +116,12 @@ int main(int argc, const char * argv[]){
 			routing_time_min,
 			routing_time_max);
 
-	PriorityQueueEventList eventList;
+	PriorityQueueEventList eventList(EVENT_LIST_LEN);
+
+	QueueJobBuffer unsortedJobQueue(UNSORTED_JOBS_LIST_LEN);
+	PriorityQueueJobSorter sortedJobQueue(SORTED_JOBS_LIST_LEN);
+	PriorityQueueWorkingServers workingServersQueue(NUM_SERVERS);
+
 	AccumulatorStatistics statistics;
 	double time = 0;
 	
@@ -117,14 +130,17 @@ int main(int argc, const char * argv[]){
 	_logl(0,"Welcome to the data center stacked server simulator.");
 	_logl(1,"Initialization parameters: ");
 	_logl(1,"Simulation time: " << MAX_TIME);
+	_logl(1,"Event list length: " << EVENT_LIST_LEN);
+	_logl(1,"Unsorted jobs list length: " << UNSORTED_JOBS_LIST_LEN);
+	_logl(1,"Sorted jobs list length: " << SORTED_JOBS_LIST_LEN);
+	_logl(1,"Number of servers: " << NUM_SERVERS);
 	_logl(1, rand);
 
 	// Queue up initial arrival.
 	eventList.enqueue(arrival);
 	
 	while(time < MAX_TIME){
-		EventPtr e = eventList.getMin();
-		eventList.dequeue();
+		EventPtr e = eventList.dequeue();
 		time = e->time;
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
