@@ -18,6 +18,18 @@ protected:
 		Event::toStream(out);
 		return(out);
 	}
+
+	virtual bool lessThan(JobEvent& other){
+		if(this->priorityIndicator == JobEvent::DIFFERENTIAL_CURRENT){
+			return((this->topNeighborCurrent + this->bottomNeighborCurrent) < (other.topNeighborCurrent + other.bottomNeighborCurrent));
+		}
+		else if(this->priorityIndicator == JobEvent::POWER_ESTIMATE){
+			return(this->powerConsumption < other.powerConsumption);
+		}
+		else{ // if(this->priorityIndicator == JobEvent::TIME){
+			return(this->time > other.time);
+		}
+	}
 public:
 	enum PriorityType {DIFFERENTIAL_CURRENT,POWER_ESTIMATE,TIME};
 
