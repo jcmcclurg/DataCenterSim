@@ -21,6 +21,10 @@ public:
 	PriorityQueueJobSorter(long size) : BoundedPriorityQueue(size){
 
 	}
+
+	bool is_empty(){
+		return this->queue.size() == 0;
+	}
 };
 
 #endif /* PRIORITYQUEUEJOBSORTER_H_ */

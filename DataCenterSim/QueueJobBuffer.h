@@ -16,6 +16,8 @@
 
 class QueueJobBuffer {
 	std::queue<JobEventPtr> queue;
+	double rejected_time_delta;
+	double last_rejected_time;
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
 		return(out << "QueueJobBuffer{size=" << this->queue.size() << "}");
@@ -24,21 +26,38 @@ public:
 	const long max_size;
 
 	QueueJobBuffer(long size) : max_size(size) {
+		this->last_rejected_time = -1;
+		this->rejected_time_delta = -1;
 	}
 	virtual ~QueueJobBuffer() {
+	}
+
+	double getTimeBetweenRejections(){
+		return rejected_time_delta;
 	}
 
 	bool is_full(){
 		return this->queue.size() >= max_size;
 	}
 
-	void enqueue(JobEventPtr e){
+	bool is_empty(){
+		return this->queue.size() == 0;
+	}
+
+	bool enqueue(JobEventPtr e){
 		if(!this->is_full()){
 			_logl(3,"Enqueueing " << *e);
 			this->queue.push(e);
+			return true;
 		}
 		else{
-			_logl(3,"Silently ignoring enqueue request for " << *e);
+			_logl(3,"Rejecting enqueue request for " << *e);
+
+			if(this->last_rejected_time != -1){
+				this->rejected_time_delta = e->time - this->last_rejected_time;
+			}
+			this->last_rejected_time = e->time;
+			return false;
 		}
 	}
 

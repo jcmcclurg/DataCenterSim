@@ -34,7 +34,8 @@ class DataCenterRandom {
 	const NormalDistribution completionTimeDistribution;
 	const UniformDistribution jobSortingTimeDistribution;
 	const UniformDistribution jobRoutingTimeDistribution;
-
+	const NormalDistribution powerEstimationErrorDistribution;
+	NormalGenerator sample_powerEstimationErrorDistribution;
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
 			return(out << "DataCenterRandom{" << std::endl
@@ -44,6 +45,7 @@ protected:
 					<< "   Sorting time ~ Uniform(" << jobSortingTimeDistribution.min() << "," << jobSortingTimeDistribution.max() << ")" << std::endl
 					<< "   Routing time ~ Uniform(" << jobRoutingTimeDistribution.min() << "," << jobRoutingTimeDistribution.max() << ")" << std::endl
 					<< "   Interarrival time ~ Exponential(" << arrivalTimeDistribution.lambda() << ")" << std::endl
+					<< "   Power estimation error ~ Normal(" << powerEstimationErrorDistribution.mean() << "," << powerEstimationErrorDistribution.sigma() << ")" << std::endl
 					<< "}");
 		}
 public:
@@ -68,7 +70,9 @@ public:
 			double sortingTimeMax,
 
 			double routingTimeMin,
-			double routingTimeMax) :
+			double routingTimeMax,
+
+			double powerEstimationErrorStdev) :
 
 		randomNumberStream(seed),
 
@@ -85,11 +89,18 @@ public:
 		sample_jobSortingTimeDistribution(randomNumberStream,jobSortingTimeDistribution),
 
 		jobRoutingTimeDistribution(routingTimeMin,routingTimeMax),
-		sample_jobRoutingTimeDistribution(randomNumberStream,jobRoutingTimeDistribution){
+		sample_jobRoutingTimeDistribution(randomNumberStream,jobRoutingTimeDistribution),
+
+		powerEstimationErrorDistribution(0,powerEstimationErrorStdev),
+		sample_powerEstimationErrorDistribution(randomNumberStream, powerEstimationErrorDistribution){
 		this->seed = seed;
 	}
 	virtual ~DataCenterRandom(){
 	};
+
+	double sample_powerEstimate(double actualPower){
+		return actualPower + sample_powerEstimationErrorDistribution();
+	}
 
 	friend std::ostream& operator<< (std::ostream& out, DataCenterRandom& e);
 };

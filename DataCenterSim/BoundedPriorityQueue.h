@@ -10,19 +10,19 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <iostream>
 #include <sstream>
-#include "JobEvent.h"
+#include "Event.h"
 #include "Debug.h"
 
-typedef typename boost::heap::fibonacci_heap<JobEventPtr> SortedJobQueue;
+typedef typename boost::heap::fibonacci_heap<EventPtr> SortedEventQueue;
 
 class BoundedPriorityQueue {
 	bool busy;
 protected:
-	SortedJobQueue queue;
+	SortedEventQueue queue;
 	virtual std::ostream& toStream(std::ostream& out){
 		out << "{"  << std::endl;
-		for (SortedJobQueue::ordered_iterator it = this->queue.ordered_begin(); it != this->queue.ordered_end(); ++it){
-			JobEventPtr ptr = *it;
+		for (SortedEventQueue::ordered_iterator it = this->queue.ordered_begin(); it != this->queue.ordered_end(); ++it){
+			EventPtr ptr = *it;
 			out << (*ptr) << std::endl;
 		}
 		return(out << "}");
@@ -35,17 +35,20 @@ public:
 	}
 	virtual ~BoundedPriorityQueue(){}
 
-	bool is_busy(){
+	virtual bool is_busy(){
 		return this->busy;
 	}
-	bool is_full(){
+	virtual bool is_full(){
 		return this->queue.size() >= max_size;
 	}
+	virtual void reset_busy(){
+		this->busy = false;
+	}
 
-	void enqueue(JobEventPtr e){
+	virtual void enqueue(EventPtr e){
 		if(!this->is_full()){
-			_logl(3,"Enqueuing " << *e);
-			e->priorityIndicator = JobEvent::POWER_ESTIMATE;
+			this->busy = true;
+			_logl(3,"Enqueuing and sorting " << *e);
 			this->queue.push(e);
 		}
 		else{
@@ -53,8 +56,8 @@ public:
 		}
 	}
 
-	JobEventPtr dequeue(){
-		JobEventPtr j = this->queue.top();
+	virtual EventPtr dequeue(){
+		EventPtr j = this->queue.top();
 		_logl(3,"Dequeuing " << *j);
 		this->queue.pop();
 		return j;

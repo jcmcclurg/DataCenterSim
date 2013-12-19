@@ -19,6 +19,22 @@ protected:
 public:
 	PriorityQueueWorkingServers(long size) : BoundedPriorityQueue(size){
 	}
+
+	virtual void remove(EventPtr e){
+		typedef typename SortedEventQueue::handle_type handle_t;
+
+		_logl(3,"Trying to remove element " << *e);
+
+		for (SortedEventQueue::iterator it = this->queue.begin(); it != this->queue.end(); ++it){
+			EventPtr ptr = *it;
+			if(*ptr == *e){
+				_log(3,std::cout << "Removing element " << *ptr);
+
+				handle_t h = SortedEventQueue::s_handle_from_iterator(it);
+				this->queue.erase(h);
+			}
+		}
+	}
 };
 
 #endif /* PRIORITYQUEUEWORKINGSERVERS_H_ */

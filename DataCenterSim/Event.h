@@ -15,11 +15,15 @@
 
 class Event {
 protected:
+	static long identifier = 0;
+	virtual double toDouble(){
+		return -this->time;
+	}
 	virtual bool lessThan(Event& other){
-		return(this->time > other.time);
+		return(this->toDouble() < other.toDouble());
 	}
 	virtual bool equals(Event& other){
-		return((this->time == other.time) && (this->type == other.type));
+		return((this->toDouble() == other.toDouble()) && (this->type == other.type));
 	}
 	virtual std::ostream& toStream(std::ostream& out){
 		out << "Event{time="<< this->time << ",type=";
@@ -38,16 +42,21 @@ protected:
 		return( out << "}");
 	}
 public:
+	const long id;
 	enum EventType { JOB_ARRIVAL, SORTED_QUEUE_READY, JOB_FINISHED, WORKING_SERVERS_QUEUE_READY };
 
 	double time;
 	Event::EventType type;
 
-	Event(double t, Event::EventType i){
+	Event(double t, Event::EventType i) : id(Event::identifier){
+		Event::identifier++;
 		this->time = t;
 		this->type = i;
 	}
-	virtual ~Event(){}
+
+	virtual ~Event(){
+		Event::identifier--;
+	}
 
 	friend std::ostream& operator<< (std::ostream& out, Event& e);
 	friend bool operator< (Event& a, Event& b);

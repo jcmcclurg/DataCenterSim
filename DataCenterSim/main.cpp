@@ -96,6 +96,7 @@ int main(int argc, const char * argv[]){
 
 	double power_mean = 300;				// Watts
 	double power_stdev = power_mean/10;
+	double power_estimate_error_stdev = power_stdev/10;
 
 	double arrival_rate = 100;				// Jobs per second
 
@@ -118,7 +119,8 @@ int main(int argc, const char * argv[]){
 			sorting_time_min,
 			sorting_time_max,
 			routing_time_min,
-			routing_time_max);
+			routing_time_max,
+			power_estimate_error_stdev);
 
 	PriorityQueueEventList eventList(EVENT_LIST_LEN);
 
@@ -150,21 +152,84 @@ int main(int argc, const char * argv[]){
 		time = e->time;
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
-			JobEventPtr d = boost::static_pointer_cast<JobEvent>(e);
+			JobEventPtr job = boost::static_pointer_cast<JobEvent>(e);
 			_logl(2,"Processing job event.");
-			if(e->type == Event::JOB_ARRIVAL){
+			if(job->type == Event::JOB_ARRIVAL){
 				double t = time + rand.sample_arrivalTimeDistribution();
-				_logl(2,"Scheduling new job arrival at time " << t);
+				_logl(2,"Scheduling next job arrival for time " << t);
+				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL));
+				eventList.enqueue(nextJob);
 
-				JobEventPtr j(new JobEvent(t, Event::JOB_ARRIVAL));
-				eventList.enqueue(j);
-			}
+				if(!unsortedJobQueue.enqueue(job)){
+					if(!sortedJobQueue.enqueue(job)){
+						workingServersQueue.enqueue(job);
+					}
+				}
+
+				/* TODO: move to inside queues
+				// There are jobs ahead of me in the input queue, or the sorting queue is not ready.
+				if(!unsortedJobQueue.is_empty() || sortedJobQueue.is_busy() || sortedJobQueue.is_full()){
+					_logl(2,"Trying to add to input queue.");
+					if(!unsortedJobQueue.enqueue(job)){
+						double s = unsortedJobQueue.getTimeBetweenRejections();
+						if(s != -1){
+							statistics.getAccumulator(AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS)->add(s);
+						}
+					}
+				}
+
+				// There are sorted jobs ahead of me, or the working servers queue is not ready.
+				else if(!sortedJobQueue.is_empty() || workingServersQueue.is_busy() || workingServersQueue.is_full()){
+					t = time + rand.sample_jobSortingTimeDistribution();
+					_logl(2,"Adding to sorting queue (busy until time " << t << ")");
+					job->priorityIndicator = JobEvent::POWER_ESTIMATE;
+					job->powerConsumption = rand.sample_powerDistribution();
+					job->powerConsumptionEstimate = rand.sample_powerEstimate(job->powerConsumption);
+					sortedJobQueue.enqueue(job);
+					EventPtr ready(new Event(t, Event::SORTED_QUEUE_READY));
+					eventList.enqueue(ready);
+				}
+
+				// If both queues are empty, just send the job straight to the servers.
+				else{
+					t = time + rand.sample_jobRoutingTimeDistribution();
+					_logl(2,"Adding to working servers (busy until time " << t << ")");
+					job->completionTime = rand.sample_completionTimeDistribution();
+					job->priorityIndicator = JobEvent::DIFFERENTIAL_CURRENT;
+					workingServersQueue.enqueue(job);
+					EventPtr ready(new Event(t, Event::WORKING_SERVERS_QUEUE_READY));
+					eventList.enqueue(ready);
+
+					t = time + rand.sample_completionTimeDistribution();
+					job->type = Event::JOB_FINISHED;
+					eventList.enqueue(job);
+				}
+				*/
+			} // end if job arrival event
+
+
+			else{ // if(job->type == Event::JOB_FINISHED){
+				workingServersQueue.remove(job);
+			} // end if job finished event
 		}
 		else if(e->type == Event::SORTED_QUEUE_READY){
 			_logl(2,"Processing sorted queue event.");
+			sortedJobQueue.reset_busy();
+
+			if(!unsortedJobQueue.is_empty()){
+				JobEventPtr job = unsortedJobQueue.dequeue();
+				if(!sortedJobQueue.enqueue(job)){
+					workingServersQueue.enqueue(job);
+				}
+			}
 		}
-		else if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
+		else{ // if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
 			_logl(2,"Processing working servers queue event.");
+			workingServersQueue.reset_busy();
+			if(!sortedJobQueue.is_busy() && !sortedJobQueue.is_empty()){
+				JobEventPtr job = sortedJobQueue.dequeue();
+				workingServersQueue.enqueue(job);
+			}
 		}
 	}
 	

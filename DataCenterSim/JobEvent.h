@@ -12,6 +12,7 @@
 #include "Event.h"
 
 class JobEvent : public Event {
+
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
 		out << "Job";
@@ -19,15 +20,19 @@ protected:
 		return(out);
 	}
 
-	virtual bool lessThan(JobEvent& other){
+	virtual bool equals(Event& other){
+		return this->id == other.id;
+	}
+
+	virtual double toDouble(){
 		if(this->priorityIndicator == JobEvent::DIFFERENTIAL_CURRENT){
-			return((this->topNeighborCurrent + this->bottomNeighborCurrent) < (other.topNeighborCurrent + other.bottomNeighborCurrent));
+			return this->topNeighborCurrent + this->bottomNeighborCurrent;
 		}
 		else if(this->priorityIndicator == JobEvent::POWER_ESTIMATE){
-			return(this->powerConsumption < other.powerConsumption);
+			return this->powerConsumption;
 		}
 		else{ // if(this->priorityIndicator == JobEvent::TIME){
-			return(this->time > other.time);
+			return Event::toDouble();
 		}
 	}
 public:
