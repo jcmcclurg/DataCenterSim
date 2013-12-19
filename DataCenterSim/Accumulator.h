@@ -27,12 +27,17 @@ class Accumulator {
 	MeanAndVarianceAccumulator accumulator;
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
-		return (out << "Accumulator{"
-				<< "N=" << this->getN()
-				<<",mean=" << this->getMean()
-				<< ",std=" << this->getStddev()
-				<< ",CI(90%)=" << this->getCI(0.9)
-				<< "}");
+		if(this->getN() > 1){
+			return (out << "Accumulator{"
+					<< "N=" << this->getN()
+					<<",mean=" << this->getMean()
+					<< ",std=" << this->getStddev()
+					<< ",CI(90%)=" << this->getCI(0.9)
+					<< "}");
+		}
+		else{
+			return(out << "Accumulator{N=" << this->getN() << "}");
+		}
 	}
 public:
 	Accumulator() {
@@ -41,7 +46,7 @@ public:
 	}
 
 	virtual void add(double statistic){
-		_logl(3,"Accumulating " << statistic);
+		_logl(4,"Accumulating " << statistic);
 		this->accumulator(statistic);
 	}
 

@@ -12,7 +12,7 @@
 #include "DataCenterRandom.h"
 #include "AccumulatorStatistics.h"
 
-void test_accumulator(DataCenterRandom& rand, AccumulatorStatistics& stat);
+void test_accumulator(DataCenterRandomPtr rand, AccumulatorStatistics& stat);
 #endif
 
 #endif /* UNITTEST_H_ */

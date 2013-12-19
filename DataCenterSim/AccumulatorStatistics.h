@@ -19,9 +19,9 @@ class AccumulatorStatistics {
 protected:
 	virtual std::ostream& toStream(std::ostream& out){
 		return out << "AccumulatorStatistics{"<< std::endl
-				<< "   TIME_BETWEEN_REJECTED_JOBS: " << stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] << std::endl
-				<< "   TOTAL_ENERGY: " << stats[AccumulatorStatistics::TOTAL_ENERGY]  << std::endl
-				<< "   LATENCY: " << stats[AccumulatorStatistics::LATENCY]  << std::endl
+				<< "   TIME_BETWEEN_REJECTED_JOBS: " << (*(stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS])) << std::endl
+				<< "   TOTAL_ENERGY: " << (*(stats[AccumulatorStatistics::TOTAL_ENERGY]))  << std::endl
+				<< "   LATENCY: " << (*(stats[AccumulatorStatistics::LATENCY]))  << std::endl
 				<< "}";
 	}
 public:
@@ -40,5 +40,7 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& out, AccumulatorStatistics& e);
 };
+
+typedef typename boost::shared_ptr<AccumulatorStatistics> AccumulatorStatisticsPtr;
 
 #endif /* defined(__DataCenterSim__VectorStatistics__) */

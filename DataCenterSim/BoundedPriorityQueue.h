@@ -16,9 +16,12 @@
 typedef typename boost::heap::fibonacci_heap<EventPtr> SortedEventQueue;
 
 class BoundedPriorityQueue {
-	bool busy;
 protected:
+	bool busy;
 	SortedEventQueue queue;
+	virtual std::string name(){
+		return "BoundedPriorityQueue";
+	}
 	virtual std::ostream& toStream(std::ostream& out){
 		out << "{"  << std::endl;
 		for (SortedEventQueue::ordered_iterator it = this->queue.ordered_begin(); it != this->queue.ordered_end(); ++it){
@@ -30,38 +33,42 @@ protected:
 public:
 	const long max_size;
 
-	BoundedPriorityQueue(long size) : max_size(size){
-		this->busy = false;
-	}
-	virtual ~BoundedPriorityQueue(){}
-
 	virtual bool is_busy(){
 		return this->busy;
 	}
+
 	virtual bool is_full(){
 		return this->queue.size() >= max_size;
 	}
+
 	virtual void reset_busy(){
 		this->busy = false;
 	}
 
-	virtual void enqueue(EventPtr e){
+	virtual bool enqueue(EventPtr e){
 		if(!this->is_full()){
 			this->busy = true;
-			_logl(3,"Enqueuing and sorting " << *e);
+			_logl(4,this->name() << " enqueueing " << *e);
 			this->queue.push(e);
+			return true;
 		}
 		else{
-			_logl(3,"Silently ignoring enqueue request for " << *e);
+			_logl(4,this->name() << " is full. Denying enqueue request " << *e);
 		}
+		return false;
 	}
 
 	virtual EventPtr dequeue(){
 		EventPtr j = this->queue.top();
-		_logl(3,"Dequeuing " << *j);
+		_logl(4,this->name() << " dequeuing " << *j);
 		this->queue.pop();
 		return j;
 	}
+
+	BoundedPriorityQueue(long size) : max_size(size){
+		this->busy = false;
+	}
+	virtual ~BoundedPriorityQueue(){}
 
 	friend std::ostream& operator<< (std::ostream& out, BoundedPriorityQueue& e);
 };

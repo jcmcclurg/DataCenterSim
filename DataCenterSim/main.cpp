@@ -109,7 +109,7 @@ int main(int argc, const char * argv[]){
 	double routing_time_min = sorting_time_min;
 	double routing_time_max = sorting_time_max;
 
-	DataCenterRandom rand(
+	DataCenterRandomPtr rand(new DataCenterRandom(
 			seed,
 			power_mean,
 			power_stdev,
@@ -120,15 +120,28 @@ int main(int argc, const char * argv[]){
 			sorting_time_max,
 			routing_time_min,
 			routing_time_max,
-			power_estimate_error_stdev);
+			power_estimate_error_stdev));
 
-	PriorityQueueEventList eventList(EVENT_LIST_LEN);
-
-	QueueJobBuffer unsortedJobQueue(UNSORTED_JOBS_LIST_LEN);
-	PriorityQueueJobSorter sortedJobQueue(SORTED_JOBS_LIST_LEN);
-	PriorityQueueWorkingServers workingServersQueue(NUM_SERVERS);
+	PriorityQueueEventListPtr eventList(new PriorityQueueEventList(
+			EVENT_LIST_LEN));
 
 	AccumulatorStatistics statistics;
+	PriorityQueueWorkingServersPtr workingServersQueue(new PriorityQueueWorkingServers(
+			NUM_SERVERS,
+			rand,
+			eventList,
+			statistics.getAccumulator(AccumulatorStatistics::LATENCY),
+			statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY)));
+	PriorityQueueJobSorterPtr sortedJobQueue(new PriorityQueueJobSorter(
+			SORTED_JOBS_LIST_LEN,
+			rand,
+			workingServersQueue,
+			eventList));
+	QueueJobBufferPtr unsortedJobQueue(new QueueJobBuffer(
+			UNSORTED_JOBS_LIST_LEN,
+			statistics.getAccumulator(AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS),
+			sortedJobQueue));
+
 
 #ifndef UNITTEST
 	double time = 0;
@@ -142,98 +155,64 @@ int main(int argc, const char * argv[]){
 	_logl(1,"Unsorted jobs list length: " << UNSORTED_JOBS_LIST_LEN);
 	_logl(1,"Sorted jobs list length: " << SORTED_JOBS_LIST_LEN);
 	_logl(1,"Number of servers: " << NUM_SERVERS);
-	_logl(1, rand);
+	_logl(1, *rand);
 
 	// Queue up initial arrival.
-	eventList.enqueue(arrival);
+	_logl(2,"Creating initial arrival event.");
+	eventList->enqueue(arrival);
 	
 	while(time < MAX_TIME){
-		EventPtr e = eventList.dequeue();
+		EventPtr e = eventList->dequeue();
 		time = e->time;
+		_logl(2, time);
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
 			JobEventPtr job = boost::static_pointer_cast<JobEvent>(e);
-			_logl(2,"Processing job event.");
+
 			if(job->type == Event::JOB_ARRIVAL){
-				double t = time + rand.sample_arrivalTimeDistribution();
-				_logl(2,"Scheduling next job arrival for time " << t);
+				double t = time + rand->sample_arrivalTimeDistribution();
+				_logl(2,"Processing job arrival event. Scheduling next job arrival for time " << t);
 				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL));
-				eventList.enqueue(nextJob);
+				eventList->enqueue(nextJob);
 
-				if(!unsortedJobQueue.enqueue(job)){
-					if(!sortedJobQueue.enqueue(job)){
-						workingServersQueue.enqueue(job);
+				if(!unsortedJobQueue->enqueue(job)){
+					if(!sortedJobQueue->enqueue(job,time)){
+						workingServersQueue->enqueue(job,time);
 					}
 				}
-
-				/* TODO: move to inside queues
-				// There are jobs ahead of me in the input queue, or the sorting queue is not ready.
-				if(!unsortedJobQueue.is_empty() || sortedJobQueue.is_busy() || sortedJobQueue.is_full()){
-					_logl(2,"Trying to add to input queue.");
-					if(!unsortedJobQueue.enqueue(job)){
-						double s = unsortedJobQueue.getTimeBetweenRejections();
-						if(s != -1){
-							statistics.getAccumulator(AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS)->add(s);
-						}
-					}
-				}
-
-				// There are sorted jobs ahead of me, or the working servers queue is not ready.
-				else if(!sortedJobQueue.is_empty() || workingServersQueue.is_busy() || workingServersQueue.is_full()){
-					t = time + rand.sample_jobSortingTimeDistribution();
-					_logl(2,"Adding to sorting queue (busy until time " << t << ")");
-					job->priorityIndicator = JobEvent::POWER_ESTIMATE;
-					job->powerConsumption = rand.sample_powerDistribution();
-					job->powerConsumptionEstimate = rand.sample_powerEstimate(job->powerConsumption);
-					sortedJobQueue.enqueue(job);
-					EventPtr ready(new Event(t, Event::SORTED_QUEUE_READY));
-					eventList.enqueue(ready);
-				}
-
-				// If both queues are empty, just send the job straight to the servers.
-				else{
-					t = time + rand.sample_jobRoutingTimeDistribution();
-					_logl(2,"Adding to working servers (busy until time " << t << ")");
-					job->completionTime = rand.sample_completionTimeDistribution();
-					job->priorityIndicator = JobEvent::DIFFERENTIAL_CURRENT;
-					workingServersQueue.enqueue(job);
-					EventPtr ready(new Event(t, Event::WORKING_SERVERS_QUEUE_READY));
-					eventList.enqueue(ready);
-
-					t = time + rand.sample_completionTimeDistribution();
-					job->type = Event::JOB_FINISHED;
-					eventList.enqueue(job);
-				}
-				*/
-			} // end if job arrival event
-
+			}
 
 			else{ // if(job->type == Event::JOB_FINISHED){
-				workingServersQueue.remove(job);
-			} // end if job finished event
+				_logl(2,"Processing job removal event.");
+				workingServersQueue->remove(job,time);
+			}
 		}
-		else if(e->type == Event::SORTED_QUEUE_READY){
-			_logl(2,"Processing sorted queue event.");
-			sortedJobQueue.reset_busy();
 
-			if(!unsortedJobQueue.is_empty()){
-				JobEventPtr job = unsortedJobQueue.dequeue();
-				if(!sortedJobQueue.enqueue(job)){
-					workingServersQueue.enqueue(job);
+		else if(e->type == Event::SORTED_QUEUE_READY){
+			_logl(2,"Processing sorted queue ready event.");
+			sortedJobQueue->reset_busy();
+
+			if(!unsortedJobQueue->is_empty()){
+				JobEventPtr job = unsortedJobQueue->dequeue();
+				if(!sortedJobQueue->enqueue(job,time)){
+					workingServersQueue->enqueue(job,time);
 				}
 			}
 		}
+
 		else{ // if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
-			_logl(2,"Processing working servers queue event.");
-			workingServersQueue.reset_busy();
-			if(!sortedJobQueue.is_busy() && !sortedJobQueue.is_empty()){
-				JobEventPtr job = sortedJobQueue.dequeue();
-				workingServersQueue.enqueue(job);
+			_logl(2,"Processing working servers queue ready event.");
+			workingServersQueue->reset_busy();
+			if(!sortedJobQueue->is_busy() && !sortedJobQueue->is_empty()){
+				JobEventPtr job = sortedJobQueue->dequeueJob();
+				workingServersQueue->enqueue(job,time);
 			}
 		}
+		//_log(3, (*eventList) << std::endl);
 	}
 	
-	_logl(1,"Finished simulation after " << time << " seconds.");
+	_logl(1,"Finished simulation of " << time << " virtual seconds.");
+	_logl(0,"Simulation results: " << std::endl << statistics);
 	return 0;
 
 // Run the Unit tests

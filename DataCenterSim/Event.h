@@ -12,21 +12,23 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <sstream>
+#include "Debug.h"
 
 class Event {
 protected:
-	static long identifier = 0;
+	static long identifier;
 	virtual double toDouble(){
-		return -this->time;
+		return -(this->time);
 	}
 	virtual bool lessThan(Event& other){
+		_logl(5,"Comparing " << this->toDouble() << " against " << other.toDouble());
 		return(this->toDouble() < other.toDouble());
 	}
 	virtual bool equals(Event& other){
 		return((this->toDouble() == other.toDouble()) && (this->type == other.type));
 	}
 	virtual std::ostream& toStream(std::ostream& out){
-		out << "Event{time="<< this->time << ",type=";
+		out << "Event{" << this->id << ",time="<< this->time << ",type=";
 		if(this->type == Event::JOB_ARRIVAL){
 			out << "JOB_ARRIVAL";
 		}
@@ -60,6 +62,7 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& out, Event& e);
 	friend bool operator< (Event& a, Event& b);
+	friend bool operator< (boost::shared_ptr<Event> a, boost::shared_ptr<Event> b);
 	friend bool operator== (Event& a, Event& b);
 };
 

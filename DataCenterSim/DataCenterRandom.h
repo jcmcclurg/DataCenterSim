@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/exponential_distribution.hpp>
@@ -104,5 +105,7 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& out, DataCenterRandom& e);
 };
+
+typedef typename boost::shared_ptr<DataCenterRandom> DataCenterRandomPtr;
 
 #endif /* DATACENTERRANDOM_H_ */
