@@ -14,27 +14,11 @@
 class JobEvent : public Event {
 
 protected:
-	virtual std::ostream& toStream(std::ostream& out){
-		out << "Job";
-		Event::toStream(out);
-		return(out);
-	}
+	virtual std::ostream& toStream(std::ostream& out);
 
-	virtual bool equals(Event& other){
-		return this->id == other.id;
-	}
+	virtual bool equals(Event& other);
 
-	virtual double toDouble(){
-		if(this->priorityIndicator == JobEvent::DIFFERENTIAL_CURRENT){
-			return this->topNeighborCurrent + this->bottomNeighborCurrent;
-		}
-		else if(this->priorityIndicator == JobEvent::POWER_ESTIMATE){
-			return this->powerConsumption;
-		}
-		else{ // if(this->priorityIndicator == JobEvent::TIME){
-			return Event::toDouble();
-		}
-	}
+	virtual double toDouble();
 public:
 	enum PriorityType {DIFFERENTIAL_CURRENT,POWER_ESTIMATE,TIME};
 
@@ -46,14 +30,7 @@ public:
 	double topNeighborCurrent;
 	double bottomNeighborCurrent;
 
-	JobEvent(double t, Event::EventType i) : Event(t, i), originalTime(t) {
-		this->completionTime = 0;
-		this->powerConsumption = 0;
-		this->powerConsumptionEstimate = 0;
-		this->priorityIndicator = JobEvent::TIME;
-		this->topNeighborCurrent = 0;
-		this->bottomNeighborCurrent = 0;
-	}
+	JobEvent(double t, Event::EventType i);
 };
 
 typedef typename boost::shared_ptr<JobEvent> JobEventPtr;

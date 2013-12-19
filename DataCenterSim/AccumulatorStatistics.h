@@ -17,26 +17,13 @@
 class AccumulatorStatistics {
 	std::map<int, AccumulatorPtr > stats;
 protected:
-	virtual std::ostream& toStream(std::ostream& out){
-		return out << "AccumulatorStatistics{"<< std::endl
-				<< "   TIME_BETWEEN_REJECTED_JOBS: " << (*(stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS])) << std::endl
-				<< "   TOTAL_ENERGY: " << (*(stats[AccumulatorStatistics::TOTAL_ENERGY]))  << std::endl
-				<< "   LATENCY: " << (*(stats[AccumulatorStatistics::LATENCY]))  << std::endl
-				<< "}";
-	}
+	virtual std::ostream& toStream(std::ostream& out);
 public:
 	enum StatisticType{TIME_BETWEEN_REJECTED_JOBS, TOTAL_ENERGY, LATENCY};
-	AccumulatorStatistics(){
-		stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator());
-		stats[AccumulatorStatistics::TOTAL_ENERGY] = AccumulatorPtr(new Accumulator());
-		stats[AccumulatorStatistics::LATENCY] = AccumulatorPtr(new Accumulator());
-	}
+	AccumulatorStatistics();
 	virtual ~AccumulatorStatistics(){
-
 	}
-	virtual AccumulatorPtr getAccumulator(StatisticType type){
-		return stats[type];
-	}
+	virtual AccumulatorPtr getAccumulator(StatisticType type);
 
 	friend std::ostream& operator<< (std::ostream& out, AccumulatorStatistics& e);
 };

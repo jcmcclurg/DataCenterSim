@@ -11,3 +11,21 @@
 std::ostream& operator<< (std::ostream& out, AccumulatorStatistics& e){
 	return e.toStream(out);
 }
+
+std::ostream& AccumulatorStatistics::toStream(std::ostream& out){
+	return out << "AccumulatorStatistics{"<< std::endl
+			<< "   TIME_BETWEEN_REJECTED_JOBS: " << (*(this->stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS])) << std::endl
+			<< "   TOTAL_ENERGY: " << (*(this->stats[AccumulatorStatistics::TOTAL_ENERGY]))  << std::endl
+			<< "   LATENCY: " << (*(this->stats[AccumulatorStatistics::LATENCY]))  << std::endl
+			<< "}";
+}
+
+AccumulatorStatistics::AccumulatorStatistics(){
+	this->stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator());
+	this->stats[AccumulatorStatistics::TOTAL_ENERGY] = AccumulatorPtr(new Accumulator());
+	this->stats[AccumulatorStatistics::LATENCY] = AccumulatorPtr(new Accumulator());
+}
+
+AccumulatorPtr AccumulatorStatistics::getAccumulator(StatisticType type){
+	return this->stats[type];
+}

@@ -25,49 +25,22 @@ typedef typename boost::shared_ptr<MeanAndVarianceAccumulator> MeanAndVarianceAc
 
 class Accumulator {
 	MeanAndVarianceAccumulator accumulator;
+
 protected:
-	virtual std::ostream& toStream(std::ostream& out){
-		if(this->getN() > 1){
-			return (out << "Accumulator{"
-					<< "N=" << this->getN()
-					<<",mean=" << this->getMean()
-					<< ",std=" << this->getStddev()
-					<< ",CI(90%)=" << this->getCI(0.9)
-					<< "}");
-		}
-		else{
-			return(out << "Accumulator{N=" << this->getN() << "}");
-		}
-	}
+	virtual std::ostream& toStream(std::ostream& out);
+
 public:
 	Accumulator() {
 	}
+
 	virtual ~Accumulator() {
 	}
 
-	virtual void add(double statistic){
-		_logl(4,"Accumulating " << statistic);
-		this->accumulator(statistic);
-	}
-
-	virtual long getN(){
-		return boost::accumulators::count(this->accumulator);
-	}
-
-	virtual double getCI(double confidence){
-		long n = this->getN();
-		StudentTDistribution student_t(n -1);
-		double alpha = 1 - confidence;
-		return -boost::math::quantile(student_t, alpha / 2)*getStddev()/std::sqrt((double) n);
-	}
-	virtual double getMean(){
-		return boost::accumulators::mean(this->accumulator);
-	}
-	virtual double getStddev(){
-		double n = this->getN();
-		double correctionFactor = n/(n-1);
-		return std::sqrt((double) (correctionFactor*boost::accumulators::variance(this->accumulator)));
-	}
+	virtual void add(double statistic);
+	virtual long getN();
+	virtual double getCI(double confidence);
+	virtual double getMean();
+	virtual double getStddev();
 
 	friend std::ostream& operator<< (std::ostream& out, Accumulator& e);
 };

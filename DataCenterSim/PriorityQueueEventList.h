@@ -18,17 +18,10 @@
 
 class PriorityQueueEventList : public BoundedPriorityQueue {
 protected:
-	virtual std::string name(){
-		return "Event list";
-	}
-	virtual std::ostream& toStream(std::ostream& out){
-		out << "PriorityQueueEventList";
-		BoundedPriorityQueue::toStream(out);
-		return(out);
-	}
+	virtual std::string name();
+	virtual std::ostream& toStream(std::ostream& out);
 public:
-	PriorityQueueEventList(long size) : BoundedPriorityQueue(size) {
-	}
+	PriorityQueueEventList(long size);
 };
 
 typedef typename boost::shared_ptr<PriorityQueueEventList> PriorityQueueEventListPtr;
