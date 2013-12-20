@@ -10,15 +10,9 @@
 #define __DataCenterSim__JobEvent__
 
 #include "Event.h"
+#include <boost/shared_ptr.hpp>
 
 class JobEvent : public Event {
-
-protected:
-	virtual std::ostream& toStream(std::ostream& out);
-
-	virtual bool equals(Event& other);
-
-	virtual double toDouble();
 public:
 	enum PriorityType {DIFFERENTIAL_CURRENT,POWER_ESTIMATE,TIME};
 
@@ -26,13 +20,20 @@ public:
 	double completionTime;
 	double powerConsumption;
 	double powerConsumptionEstimate;
-	PriorityType priorityIndicator;
+	double stringIndex;
 	double topNeighborCurrent;
 	double bottomNeighborCurrent;
 
-	JobEvent(double t, Event::EventType i);
+	JobEvent(double t, Event::EventType i, boost::shared_ptr<JobEvent::PriorityType> sortOrder);
+
+protected:
+	boost::shared_ptr<PriorityType> priorityIndicator;
+	virtual std::ostream& toStream(std::ostream& out);
+	virtual bool equals(Event& other);
+	virtual double toDouble();
 };
 
 typedef typename boost::shared_ptr<JobEvent> JobEventPtr;
+typedef typename boost::shared_ptr<JobEvent::PriorityType> PriorityTypePtr;
 
 #endif /* defined(__DataCenterSim__JobEvent__) */

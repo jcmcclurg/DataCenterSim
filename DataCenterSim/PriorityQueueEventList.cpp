@@ -17,5 +17,15 @@ std::ostream& PriorityQueueEventList::toStream(std::ostream& out){
 	return(out);
 }
 
-PriorityQueueEventList::PriorityQueueEventList(long size) : BoundedPriorityQueue(size) {
+PriorityQueueEventList::PriorityQueueEventList(long size,PriorityTypePtr sortOrder) : BoundedPriorityQueue(size) {
+	this->sortOrder = sortOrder;
+}
+
+bool PriorityQueueEventList::enqueue(EventPtr job){
+	*(this->sortOrder) = JobEvent::TIME;
+	return BoundedPriorityQueue::enqueue(job);
+}
+EventPtr PriorityQueueEventList::dequeue(){
+	*(this->sortOrder) = JobEvent::TIME;
+	return BoundedPriorityQueue::dequeue();
 }

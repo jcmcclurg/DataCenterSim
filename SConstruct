@@ -6,7 +6,7 @@ env = Environment()
 
 # Tell the program that it's to run in debug mode
 #env.Append(CPPDEFINES=['DEBUG=10','UNITTEST'])
-env.Append(CPPDEFINES=['DEBUG=4'])
+env.Append(CPPDEFINES=['DEBUG=5'])
 
 # Do the compilation of all the sources
 #sources = Glob("DataCenterSim/*.cpp") + Glob("DataCenterSim/*.h")

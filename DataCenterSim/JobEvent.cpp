@@ -18,22 +18,23 @@ bool JobEvent::equals(Event& other){
 }
 
 double JobEvent::toDouble(){
-	if(this->priorityIndicator == JobEvent::DIFFERENTIAL_CURRENT){
+	if(*(this->priorityIndicator) == JobEvent::DIFFERENTIAL_CURRENT){
 		return this->topNeighborCurrent + this->bottomNeighborCurrent;
 	}
-	else if(this->priorityIndicator == JobEvent::POWER_ESTIMATE){
+	else if(*(this->priorityIndicator) == JobEvent::POWER_ESTIMATE){
 		return this->powerConsumption;
 	}
-	else{ // if(this->priorityIndicator == JobEvent::TIME){
+	else{ // if(*(this->priorityIndicator) == JobEvent::TIME){
 		return Event::toDouble();
 	}
 }
 
-JobEvent::JobEvent(double t, Event::EventType i) : Event(t, i), originalTime(t) {
+JobEvent::JobEvent(double t, Event::EventType i, PriorityTypePtr p) : Event(t, i), originalTime(t) {
+	this->priorityIndicator = p;
 	this->completionTime = 0;
 	this->powerConsumption = 0;
 	this->powerConsumptionEstimate = 0;
-	this->priorityIndicator = JobEvent::TIME;
 	this->topNeighborCurrent = 0;
 	this->bottomNeighborCurrent = 0;
+	this->stringIndex = -1;
 }

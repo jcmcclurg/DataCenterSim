@@ -76,7 +76,7 @@
 #define EVENT_LIST_LEN LONG_MAX
 #define UNSORTED_JOBS_LIST_LEN 10000
 #define SORTED_JOBS_LIST_LEN UNSORTED_JOBS_LIST_LEN
-#define NUM_SERVERS 100
+#define NUM_SERVERS 32
 
 /*
  1. Job arrives, with type chosen according to distribution. Schedule next job according to distribution.
@@ -122,8 +122,11 @@ int main(int argc, const char * argv[]){
 			routing_time_max,
 			power_estimate_error_stdev));
 
+	PriorityTypePtr sortOrder(new JobEvent::PriorityType(JobEvent::TIME));
+
 	PriorityQueueEventListPtr eventList(new PriorityQueueEventList(
-			EVENT_LIST_LEN));
+			EVENT_LIST_LEN,
+			sortOrder));
 
 	AccumulatorStatistics statistics;
 	PriorityQueueWorkingServersPtr workingServersQueue(new PriorityQueueWorkingServers(
@@ -131,12 +134,14 @@ int main(int argc, const char * argv[]){
 			rand,
 			eventList,
 			statistics.getAccumulator(AccumulatorStatistics::LATENCY),
-			statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY)));
+			statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY),
+			sortOrder));
 	PriorityQueueJobSorterPtr sortedJobQueue(new PriorityQueueJobSorter(
 			SORTED_JOBS_LIST_LEN,
 			rand,
 			workingServersQueue,
-			eventList));
+			eventList,
+			sortOrder));
 	QueueJobBufferPtr unsortedJobQueue(new QueueJobBuffer(
 			UNSORTED_JOBS_LIST_LEN,
 			statistics.getAccumulator(AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS),
@@ -146,7 +151,7 @@ int main(int argc, const char * argv[]){
 #ifndef UNITTEST
 	double time = 0;
 	
-	JobEventPtr arrival(new JobEvent(0, Event::JOB_ARRIVAL));
+	JobEventPtr arrival(new JobEvent(0, Event::JOB_ARRIVAL, sortOrder));
 	
 	_logl(0,"Welcome to the data center stacked server simulator.");
 	_logl(1,"Initialization parameters: ");
@@ -172,7 +177,7 @@ int main(int argc, const char * argv[]){
 			if(job->type == Event::JOB_ARRIVAL){
 				double t = time + rand->sample_arrivalTimeDistribution();
 				_logl(2,"Processing job arrival event. Scheduling next job arrival for time " << t);
-				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL));
+				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL, sortOrder));
 				eventList->enqueue(nextJob);
 
 				if(!unsortedJobQueue->enqueue(job)){
