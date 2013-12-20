@@ -16,11 +16,13 @@
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <map>
-
+#include <fstream>
 #include <boost/numeric/ublas/matrix.hpp>
 typedef typename boost::numeric::ublas::matrix<double> Matrix;
 
 class PriorityQueueWorkingServers : public BoundedPriorityQueue {
+	std::ofstream logFile;
+	std::string filename;
 	double lastTime;
 	double lastTotalPower;
 	PriorityTypePtr sortOrder;
@@ -48,7 +50,9 @@ public:
 			PriorityQueueEventListPtr eventList,
 			AccumulatorPtr latency,
 			AccumulatorPtr totalEnergy,
-			PriorityTypePtr sortOrder);
+			PriorityTypePtr sortOrder,
+			std::string filename);
+	virtual ~PriorityQueueWorkingServers();
 
 	virtual bool enqueue(JobEventPtr job, double time);
 	virtual EventPtr dequeue();

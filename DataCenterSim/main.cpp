@@ -72,9 +72,9 @@
 #include "UnitTest.h"
 #endif
 
-#define MAX_TIME 0.01
+#define MAX_TIME 100
 #define EVENT_LIST_LEN LONG_MAX
-#define UNSORTED_JOBS_LIST_LEN 10000
+#define UNSORTED_JOBS_LIST_LEN 10
 #define SORTED_JOBS_LIST_LEN UNSORTED_JOBS_LIST_LEN
 #define NUM_SERVERS 32
 
@@ -94,17 +94,17 @@
 int main(int argc, const char * argv[]){
 	double seed = 0;
 
-	double power_mean = 300;				// Watts
-	double power_stdev = power_mean/10;
-	double power_estimate_error_stdev = power_stdev/10;
+	double power_mean = 300.0;				// Watts
+	double power_stdev = power_mean/10.0;
+	double power_estimate_error_stdev = power_stdev/10.0;
 
-	double arrival_rate = 100;				// Jobs per second
+	double arrival_rate = 1000.0;				// Jobs per second
 
-	double completion_time_mean = 0.001;	// Seconds
-	double completion_time_stdev = completion_time_mean/10;
+	double completion_time_mean = 0.9*NUM_SERVERS/arrival_rate;	// Seconds
+	double completion_time_stdev = completion_time_mean/10.0;
 
-	double sorting_time_min = completion_time_mean/100;
-	double sorting_time_max = sorting_time_min*2;
+	double sorting_time_min = completion_time_mean/1000.0;
+	double sorting_time_max = sorting_time_min*2.0;
 
 	double routing_time_min = sorting_time_min;
 	double routing_time_max = sorting_time_max;
@@ -135,7 +135,8 @@ int main(int argc, const char * argv[]){
 			eventList,
 			statistics.getAccumulator(AccumulatorStatistics::LATENCY),
 			statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY),
-			sortOrder));
+			sortOrder,
+			"server_currents.csv"));
 	PriorityQueueJobSorterPtr sortedJobQueue(new PriorityQueueJobSorter(
 			SORTED_JOBS_LIST_LEN,
 			rand,
@@ -197,11 +198,19 @@ int main(int argc, const char * argv[]){
 			_logl(2,"Processing sorted queue ready event.");
 			sortedJobQueue->reset_busy();
 
+			if(!sortedJobQueue->is_empty() && !workingServersQueue->is_busy() && !workingServersQueue->is_full()){
+				JobEventPtr job = sortedJobQueue->dequeueJob();
+				workingServersQueue->enqueue(job,time);
+			}
+
 			if(!unsortedJobQueue->is_empty()){
 				JobEventPtr job = unsortedJobQueue->dequeue();
 				if(!sortedJobQueue->enqueue(job,time)){
 					workingServersQueue->enqueue(job,time);
 				}
+			}
+			else{
+				_logl(2,"Nothing for sorted queue to do.");
 			}
 		}
 
@@ -224,6 +233,7 @@ int main(int argc, const char * argv[]){
 #else
 	_logl(0,"Welcome to the unit tests.");
 	test_accumulator(rand,statistics);
+	test_working_servers(workingServersQueue,sortOrder,statistics);
 	return 0;
 #endif
 }

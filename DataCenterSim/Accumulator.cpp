@@ -6,9 +6,21 @@
  */
 
 #include "Accumulator.h"
+#include <fstream>
+#include <string>
 
 std::ostream& operator<< (std::ostream& out, Accumulator& e){
 	return e.toStream(out);
+}
+
+Accumulator::~Accumulator() {
+	this->accumulatorFile.close();
+}
+
+Accumulator::Accumulator(std::string name) {
+	this->name = name;
+	_logl(4,"Opening accumulator file " << name );
+	(this->accumulatorFile).open(name.c_str());
 }
 
 std::ostream& Accumulator::toStream(std::ostream& out){
@@ -24,7 +36,8 @@ std::ostream& Accumulator::toStream(std::ostream& out){
 		return(out << "Accumulator{N=" << this->getN() << "}");
 	}
 }
-void Accumulator::add(double statistic){
+void Accumulator::add(double statistic, double time){
+	(this->accumulatorFile) << time << "," << statistic << std::endl;
 	_logl(4,"Accumulating " << statistic);
 	this->accumulator(statistic);
 }

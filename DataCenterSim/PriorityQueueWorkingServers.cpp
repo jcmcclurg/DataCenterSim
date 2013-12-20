@@ -8,6 +8,7 @@
 
 #include "PriorityQueueWorkingServers.h"
 #include <cstddef>
+#include <cmath>
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -17,6 +18,7 @@
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+#include "Debug.h"
 
 typedef typename boost::numeric::ublas::zero_matrix<double> ZeroMatrix;
 typedef typename boost::numeric::ublas::scalar_matrix<double> ScalarMatrix;
@@ -112,9 +114,11 @@ long PriorityQueueWorkingServers::findWorstCaseIdleServer(){
 void PriorityQueueWorkingServers::updateStack(long i, JobEventPtr p, double time){
 	double thisCurrent;
 	if(p){
+		_logl(5,"Adding job to stack position " << i);
 		thisCurrent = (p->powerConsumption)/this->voltages(i,0);
 	}
 	else{
+		_logl(5,"Removing job from stack position " << i);
 		thisCurrent = 0;
 	}
 
@@ -124,15 +128,21 @@ void PriorityQueueWorkingServers::updateStack(long i, JobEventPtr p, double time
 	// Recalculate the differentialCurrents
 	Matrix differentialCurrents(this->max_size-1,1);
 	differentialCurrents = boost::numeric::ublas::prod(this->dppCalculator,this->serverCurrents);
+
+	this->stringCurrent = differentialCurrents(0,0)*0.5 + this->serverCurrents(0,0);
+
 	// TODO: implement this as a dot product operation or matrix multiplication.
 	double sum = 0;
+	this->logFile << time << "," << this->serverCurrents(0,0);
 	for(long x = 0; x < this->max_size - 1; x++){
-		sum += differentialCurrents(x,0)*this->voltages(x+1,0);
+		this->logFile << "," << this->serverCurrents(x+1,0);
+		sum += std::abs(differentialCurrents(x,0))*this->voltages(x+1,0);
 	}
+	this->logFile << std::endl;
 
 	// Update statistics
 	if(lastTime != -1){
-		this->totalEnergy->add(lastTotalPower*(time-lastTime));
+		this->totalEnergy->add(lastTotalPower*(time-lastTime),time);
 	}
 	lastTotalPower = sum;
 	lastTime = time;
@@ -190,7 +200,7 @@ void PriorityQueueWorkingServers::setupDPPCalculator(){
 		c(i,i+1) = -1;
 		d(i,i) = duty;
 		e(0,i+1) = 1;
-		e(i+1,i) = duty;
+		e(i+1,i) = -duty;
 		e(i+1,i+1) = 1-duty;
 		if(i < n-2){
 			a(i,i+1) = 1;
@@ -201,7 +211,6 @@ void PriorityQueueWorkingServers::setupDPPCalculator(){
 	this->invertMatrix(a);
 
 	this->dppCalculator = boost::numeric::ublas::prod(a,c);
-
 	this->invertMatrix(e);
 	this->voltages = boost::numeric::ublas::prod(e,f);
 }
@@ -217,7 +226,8 @@ PriorityQueueWorkingServers::PriorityQueueWorkingServers(
 		PriorityQueueEventListPtr eventList,
 		AccumulatorPtr latency,
 		AccumulatorPtr totalEnergy,
-		PriorityTypePtr sortOrder) :
+		PriorityTypePtr sortOrder,
+		std::string filename) :
 				BoundedPriorityQueue(size),
 				serverCurrents(size,1),
 				dppCalculator(size-1,size) {
@@ -229,18 +239,28 @@ PriorityQueueWorkingServers::PriorityQueueWorkingServers(
 	this->stringCurrent = 0;
 	this->lastTime = -1;
 	this->lastTotalPower = 1;
+	this->filename = filename;
 	this->setupDPPCalculator();
+
+	this->logFile.open(this->filename.c_str());
+
 	for(long i = 0; i < this->max_size; i++){
 		JobEventPtr j;
 		this->serverStack[i] = j;
 	}
 }
 
+PriorityQueueWorkingServers::~PriorityQueueWorkingServers(){
+	this->logFile.close();
+}
+
+// TODO: Fix implementation so that the priority queue saves us some search time. Right now, since we're doing the search separately, it's totally pointless to use a priority queue.
 bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 	*(this->sortOrder) = JobEvent::DIFFERENTIAL_CURRENT;
 	double t = time + rand->sample_jobRoutingTimeDistribution();
 	_logl(3,"Adding to working servers (busy until time " << t << ")");
 	job->completionTime = rand->sample_completionTimeDistribution();
+	job->powerConsumption = rand->sample_powerDistribution();
 	if(BoundedPriorityQueue::enqueue(job)){
 		updateStack(findWorstCaseIdleServer(),job, time);
 		EventPtr ready(new Event(t, Event::WORKING_SERVERS_QUEUE_READY));
@@ -268,7 +288,7 @@ void PriorityQueueWorkingServers::remove(JobEventPtr e, double time){
 			_logl(3,"Removing element " << *job);
 			JobEventPtr j;
 			this->updateStack(job->stringIndex, j, time);
-			this->latency->add(time - job->originalTime);
+			this->latency->add(time - job->originalTime, time);
 
 			handle_t h = SortedEventQueue::s_handle_from_iterator(it);
 			this->queue.erase(h);

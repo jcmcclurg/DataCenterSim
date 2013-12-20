@@ -43,7 +43,7 @@ bool QueueJobBuffer::enqueue(JobEventPtr e){
 			_logl(4,"Job buffer full. Rejecting enqueue request for " << *e);
 
 			if(this->last_rejected_time != -1){
-				time_between_rejected_jobs->add(e->time - this->last_rejected_time);
+				time_between_rejected_jobs->add(e->time - this->last_rejected_time, e->time);
 			}
 			this->last_rejected_time = e->time;
 		}

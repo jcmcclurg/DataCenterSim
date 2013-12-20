@@ -1,1 +1,9 @@
 /main.exe
+/logs/*
+/latency.txt
+/time_between_rejected_jobs.txt
+/total_energy.txt
+/latency.csv
+/server_currents.csv
+/time_between_rejected_jobs.csv
+/total_energy.csv

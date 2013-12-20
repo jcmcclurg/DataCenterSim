@@ -14,6 +14,7 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/shared_ptr.hpp>
 #include <cmath>
+#include <fstream>
 #include "Debug.h"
 
 #include <boost/math/distributions/students_t.hpp>
@@ -25,18 +26,17 @@ typedef typename boost::shared_ptr<MeanAndVarianceAccumulator> MeanAndVarianceAc
 
 class Accumulator {
 	MeanAndVarianceAccumulator accumulator;
+	std::ofstream accumulatorFile;
+	std::string name;
 
 protected:
 	virtual std::ostream& toStream(std::ostream& out);
 
 public:
-	Accumulator() {
-	}
+	Accumulator(std::string name);
+	virtual ~Accumulator();
 
-	virtual ~Accumulator() {
-	}
-
-	virtual void add(double statistic);
+	virtual void add(double statistic, double time);
 	virtual long getN();
 	virtual double getCI(double confidence);
 	virtual double getMean();
