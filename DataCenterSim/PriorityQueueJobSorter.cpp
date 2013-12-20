@@ -19,9 +19,9 @@ bool PriorityQueueJobSorter::enqueue(JobEventPtr job, double time){
 	if(!is_empty() || workingServersQueue->is_busy() || workingServersQueue->is_full()){
 		*(this->sortOrder) = JobEvent::POWER_ESTIMATE;
 
-		double t = time + rand->sample_jobSortingTimeDistribution();
+		double t = time + rand->sample_jobSortingTime();
 		_logl(3,"Adding to sorting queue (busy until time " << t << ")");
-		job->powerConsumption = rand->sample_powerDistribution();
+		job->powerConsumption = rand->sample_power();
 		job->powerConsumptionEstimate = rand->sample_powerEstimate(job->powerConsumption);
 
 		if(BoundedPriorityQueue::enqueue(job)){

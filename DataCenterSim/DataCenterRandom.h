@@ -30,22 +30,26 @@ typedef typename boost::random::variate_generator<PseudoRandom, UniformDistribut
 class DataCenterRandom {
 	double seed;
 	const PseudoRandom  randomNumberStream;
+
 	const NormalDistribution powerDistribution;
-	const ExponentialDistribution arrivalTimeDistribution;
 	const NormalDistribution completionTimeDistribution;
+	const NormalDistribution powerEstimationErrorDistribution;
+
+	const ExponentialDistribution arrivalTimeDistribution;
 	const UniformDistribution jobSortingTimeDistribution;
 	const UniformDistribution jobRoutingTimeDistribution;
-	const NormalDistribution powerEstimationErrorDistribution;
+
 	NormalGenerator sample_powerEstimationErrorDistribution;
+	NormalGenerator sample_powerDistribution;
+	NormalGenerator sample_completionTimeDistribution;
+
+	ExponentialGenerator sample_arrivalTimeDistribution;
+	UniformGenerator sample_jobSortingTimeDistribution;
+	UniformGenerator sample_jobRoutingTimeDistribution;
 protected:
 	virtual std::ostream& toStream(std::ostream& out);
 
 public:
-	NormalGenerator  sample_powerDistribution;
-	ExponentialGenerator sample_arrivalTimeDistribution;
-	NormalGenerator sample_completionTimeDistribution;
-	UniformGenerator sample_jobSortingTimeDistribution;
-	UniformGenerator sample_jobRoutingTimeDistribution;
 
 	DataCenterRandom(
 			double seed,
@@ -69,6 +73,11 @@ public:
 	virtual ~DataCenterRandom(){
 	}
 
+	double sample_arrivalTime();
+	double sample_jobSortingTime();
+	double sample_jobRoutingTime();
+	double sample_power();
+	double sample_completionTime();
 	double sample_powerEstimate(double actualPower);
 
 	friend std::ostream& operator<< (std::ostream& out, DataCenterRandom& e);

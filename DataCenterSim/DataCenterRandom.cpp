@@ -1,5 +1,5 @@
 #include "DataCenterRandom.h"
-
+#include <cmath>
 std::ostream& operator<< (std::ostream& out, DataCenterRandom& e){
 	return e.toStream(out);
 }
@@ -58,5 +58,23 @@ DataCenterRandom::DataCenterRandom(
 }
 
 double DataCenterRandom::sample_powerEstimate(double actualPower){
-	return actualPower + this->sample_powerEstimationErrorDistribution();
+	return std::max((double) (actualPower + this->sample_powerEstimationErrorDistribution()),0.0);
+}
+
+double DataCenterRandom::sample_arrivalTime(){
+	return this->sample_arrivalTimeDistribution();
+}
+
+double DataCenterRandom::sample_jobSortingTime(){
+	return this->sample_jobSortingTimeDistribution();
+}
+double DataCenterRandom::sample_jobRoutingTime(){
+	return this->sample_jobRoutingTimeDistribution();
+}
+
+double DataCenterRandom::sample_power(){
+	return std::max((double) (this->sample_powerDistribution()),0.0);
+}
+double DataCenterRandom::sample_completionTime(){
+	return std::max((double) (this->sample_completionTimeDistribution()),0.0);
 }

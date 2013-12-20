@@ -176,7 +176,7 @@ int main(int argc, const char * argv[]){
 			JobEventPtr job = boost::static_pointer_cast<JobEvent>(e);
 
 			if(job->type == Event::JOB_ARRIVAL){
-				double t = time + rand->sample_arrivalTimeDistribution();
+				double t = time + rand->sample_arrivalTime();
 				_logl(2,"Processing job arrival event. Scheduling next job arrival for time " << t);
 				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL, sortOrder));
 				eventList->enqueue(nextJob);

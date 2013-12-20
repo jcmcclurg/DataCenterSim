@@ -257,10 +257,10 @@ PriorityQueueWorkingServers::~PriorityQueueWorkingServers(){
 // TODO: Fix implementation so that the priority queue saves us some search time. Right now, since we're doing the search separately, it's totally pointless to use a priority queue.
 bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 	*(this->sortOrder) = JobEvent::DIFFERENTIAL_CURRENT;
-	double t = time + rand->sample_jobRoutingTimeDistribution();
+	double t = time + rand->sample_jobRoutingTime();
 	_logl(3,"Adding to working servers (busy until time " << t << ")");
-	job->completionTime = rand->sample_completionTimeDistribution();
-	job->powerConsumption = rand->sample_powerDistribution();
+	job->completionTime = rand->sample_completionTime();
+	job->powerConsumption = rand->sample_power();
 	if(BoundedPriorityQueue::enqueue(job)){
 		updateStack(findWorstCaseIdleServer(),job, time);
 		EventPtr ready(new Event(t, Event::WORKING_SERVERS_QUEUE_READY));
