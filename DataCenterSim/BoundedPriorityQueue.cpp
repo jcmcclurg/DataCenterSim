@@ -40,19 +40,19 @@ void BoundedPriorityQueue::reset_busy(){
 bool BoundedPriorityQueue::enqueue(EventPtr e){
 	if(!this->is_full()){
 		this->busy = true;
-		_logl(4,this->name() << " enqueueing " << *e);
+		_NOTEL(4,this->name() << " enqueueing " << *e);
 		this->queue.push(e);
 		return true;
 	}
 	else{
-		_logl(4,this->name() << " is full. Denying enqueue request " << *e);
+		_NOTEL(4,this->name() << " is full. Denying enqueue request " << *e);
 	}
 	return false;
 }
 
 EventPtr BoundedPriorityQueue::dequeue(){
 	EventPtr j = this->queue.top();
-	_logl(4,this->name() << " dequeuing " << *j);
+	_NOTEL(4,this->name() << " dequeuing " << *j);
 	this->queue.pop();
 	return j;
 }

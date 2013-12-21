@@ -35,12 +35,12 @@ bool QueueJobBuffer::is_empty(){
 bool QueueJobBuffer::enqueue(JobEventPtr e){
 	if(!is_empty() || sortedJobQueue->is_busy() || sortedJobQueue->is_full()){
 		if(!this->is_full()){
-			_logl(4,"Job buffer enqueueing " << *e);
+			_NOTEL(4,"Job buffer enqueueing " << *e);
 			this->queue.push(e);
 			return true;
 		}
 		else{
-			_logl(4,"Job buffer full. Rejecting enqueue request for " << *e);
+			_NOTEL(4,"Job buffer full. Rejecting enqueue request for " << *e);
 
 			if(this->last_rejected_time != -1){
 				time_between_rejected_jobs->add(e->time - this->last_rejected_time, e->time);
@@ -48,13 +48,13 @@ bool QueueJobBuffer::enqueue(JobEventPtr e){
 			this->last_rejected_time = e->time;
 		}
 	}
-	_logl(4,"Job buffer forwarding enqueue request for " << *e);
+	_NOTEL(4,"Job buffer forwarding enqueue request for " << *e);
 	return false;
 }
 
 JobEventPtr QueueJobBuffer::dequeue(void){
 	JobEventPtr p = this->queue.front();
-	_logl(4,"Job buffer dequeueing " << *p);
+	_NOTEL(4,"Job buffer dequeueing " << *p);
 	this->queue.pop();
 	return p;
 }

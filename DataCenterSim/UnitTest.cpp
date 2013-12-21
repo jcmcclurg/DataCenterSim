@@ -22,7 +22,7 @@ void test_accumulator(DataCenterRandomPtr rand, AccumulatorStatistics& stat){
 		l = rand->sample_arrivalTimeDistribution();
 		p->add(l,i);
 	}
-	_logl(0, stat);
+	_NOTEL(0, stat);
 }
 
 void test_working_servers(
@@ -48,7 +48,7 @@ void test_working_servers(
 	workingServersQueue->remove(j3,6);
 
 	workingServersQueue->enqueue(j5,5);
-	_logl(0,stat);
+	_NOTEL(0,stat);
 }
 
 #endif

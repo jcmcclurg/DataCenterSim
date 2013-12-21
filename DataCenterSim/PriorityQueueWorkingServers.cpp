@@ -114,11 +114,11 @@ long PriorityQueueWorkingServers::findWorstCaseIdleServer(){
 void PriorityQueueWorkingServers::updateStack(long i, JobEventPtr p, double time){
 	double thisCurrent;
 	if(p){
-		_logl(5,"Adding job to stack position " << i);
+		_NOTEL(5,"Adding job to stack position " << i);
 		thisCurrent = (p->powerConsumption)/this->voltages(i,0);
 	}
 	else{
-		_logl(5,"Removing job from stack position " << i);
+		_NOTEL(5,"Removing job from stack position " << i);
 		thisCurrent = 0;
 	}
 
@@ -258,7 +258,7 @@ PriorityQueueWorkingServers::~PriorityQueueWorkingServers(){
 bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 	*(this->sortOrder) = JobEvent::DIFFERENTIAL_CURRENT;
 	double t = time + rand->sample_jobRoutingTime();
-	_logl(3,"Adding to working servers (busy until time " << t << ")");
+	_NOTEL(3,"Adding to working servers (busy until time " << t << ")");
 	job->completionTime = rand->sample_completionTime();
 	job->powerConsumption = rand->sample_power();
 	if(BoundedPriorityQueue::enqueue(job)){
@@ -270,10 +270,10 @@ bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 		job->type = Event::JOB_FINISHED;
 		eventList->enqueue(job);
 
-		_logl(5, (*this) );
+		_NOTEL(5, (*this) );
 		return true;
 	}
-	_logl(3,"Working servers queue rejecting enqueue request for " << *job);
+	_NOTEL(3,"Working servers queue rejecting enqueue request for " << *job);
 	return false;
 }
 
@@ -285,7 +285,7 @@ void PriorityQueueWorkingServers::remove(JobEventPtr e, double time){
 		EventPtr ptr = *it;
 		JobEventPtr job = boost::static_pointer_cast<JobEvent>(ptr);
 		if(*job == *e){
-			_logl(3,"Removing element " << *job);
+			_NOTEL(3,"Removing element " << *job);
 			JobEventPtr j;
 			this->updateStack(job->stringIndex, j, time);
 			this->latency->add(time - job->originalTime, time);
@@ -293,9 +293,9 @@ void PriorityQueueWorkingServers::remove(JobEventPtr e, double time){
 			handle_t h = SortedEventQueue::s_handle_from_iterator(it);
 			this->queue.erase(h);
 
-			_logl(5, (*this) );
+			_NOTEL(5, (*this) );
 			return;
 		}
 	}
-	_logl(3,"Could not find element " << *e);
+	_NOTEL(3,"Could not find element " << *e);
 }

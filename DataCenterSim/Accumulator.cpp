@@ -19,7 +19,7 @@ Accumulator::~Accumulator() {
 
 Accumulator::Accumulator(std::string name) {
 	this->name = name;
-	_logl(4,"Opening accumulator file " << name );
+	_NOTEL(4,"Opening accumulator file " << name );
 	(this->accumulatorFile).open(name.c_str());
 }
 
@@ -29,7 +29,7 @@ std::ostream& Accumulator::toStream(std::ostream& out){
 				<< "N=" << this->getN()
 				<<",mean=" << this->getMean()
 				<< ",std=" << this->getStddev()
-				<< ",CI(90%)=" << this->getCI(0.9)
+				<< ",CI(95%)=" << this->getCI(0.95)
 				<< "}");
 	}
 	else{
@@ -38,7 +38,7 @@ std::ostream& Accumulator::toStream(std::ostream& out){
 }
 void Accumulator::add(double statistic, double time){
 	(this->accumulatorFile) << time << "," << statistic << std::endl;
-	_logl(4,"Accumulating " << statistic);
+	_NOTEL(4,"Accumulating " << statistic);
 	this->accumulator(statistic);
 }
 

@@ -74,7 +74,7 @@
 
 #define MAX_TIME 100
 #define EVENT_LIST_LEN LONG_MAX
-#define UNSORTED_JOBS_LIST_LEN 10
+#define UNSORTED_JOBS_LIST_LEN 100
 #define SORTED_JOBS_LIST_LEN UNSORTED_JOBS_LIST_LEN
 #define NUM_SERVERS 32
 
@@ -83,7 +83,7 @@
  2. If "unsorted jobs queue" is full, job is turned away.
  3. Otherwise, job enters "unsorted jobs queue".
  4. Wait until "sorted jobs queue" is no longer busy.
- 5. Enter "sorted jobs queue," and mark the queue as busy for O(log(n)) time.
+ 5. Enter "sorted jobs queue," and mark the queue as busy for O(_LOG(n)) time.
  6. Wait until "available servers" queue is no longer full.
  8. Enter "available servers" queue, and schedule exit time according to distribution.
  9. Collect latency statistics with each exit.
@@ -154,30 +154,30 @@ int main(int argc, const char * argv[]){
 	
 	JobEventPtr arrival(new JobEvent(0, Event::JOB_ARRIVAL, sortOrder));
 	
-	_logl(0,"Welcome to the data center stacked server simulator.");
-	_logl(1,"Initialization parameters: ");
-	_logl(1,"Simulation time: " << MAX_TIME);
-	_logl(1,"Event list length: " << EVENT_LIST_LEN);
-	_logl(1,"Unsorted jobs list length: " << UNSORTED_JOBS_LIST_LEN);
-	_logl(1,"Sorted jobs list length: " << SORTED_JOBS_LIST_LEN);
-	_logl(1,"Number of servers: " << NUM_SERVERS);
-	_logl(1, *rand);
+	_NOTEL(0,"Welcome to the data center stacked server simulator.");
+	_LOGL(1,"Initialization parameters: ");
+	_LOGL(1,"Simulation time: " << MAX_TIME);
+	_LOGL(1,"Event list length: " << EVENT_LIST_LEN);
+	_LOGL(1,"Unsorted jobs list length: " << UNSORTED_JOBS_LIST_LEN);
+	_LOGL(1,"Sorted jobs list length: " << SORTED_JOBS_LIST_LEN);
+	_LOGL(1,"Number of servers: " << NUM_SERVERS);
+	_LOGL(1, *rand);
 
 	// Queue up initial arrival.
-	_logl(2,"Creating initial arrival event.");
+	_NOTEL(2,"Creating initial arrival event.");
 	eventList->enqueue(arrival);
 	
 	while(time < MAX_TIME){
 		EventPtr e = eventList->dequeue();
 		time = e->time;
-		_logl(2, time);
+		_NOTEL(2, time);
 
 		if(e->type == Event::JOB_ARRIVAL || e->type == Event::JOB_FINISHED){
 			JobEventPtr job = boost::static_pointer_cast<JobEvent>(e);
 
 			if(job->type == Event::JOB_ARRIVAL){
 				double t = time + rand->sample_arrivalTime();
-				_logl(2,"Processing job arrival event. Scheduling next job arrival for time " << t);
+				_NOTEL(2,"Processing job arrival event. Scheduling next job arrival for time " << t);
 				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL, sortOrder));
 				eventList->enqueue(nextJob);
 
@@ -189,13 +189,13 @@ int main(int argc, const char * argv[]){
 			}
 
 			else{ // if(job->type == Event::JOB_FINISHED){
-				_logl(2,"Processing job removal event.");
+				_NOTEL(2,"Processing job removal event.");
 				workingServersQueue->remove(job,time);
 			}
 		}
 
 		else if(e->type == Event::SORTED_QUEUE_READY){
-			_logl(2,"Processing sorted queue ready event.");
+			_NOTEL(2,"Processing sorted queue ready event.");
 			sortedJobQueue->reset_busy();
 
 			if(!sortedJobQueue->is_empty() && !workingServersQueue->is_busy() && !workingServersQueue->is_full()){
@@ -210,28 +210,28 @@ int main(int argc, const char * argv[]){
 				}
 			}
 			else{
-				_logl(2,"Nothing for sorted queue to do.");
+				_NOTEL(2,"Nothing for sorted queue to do.");
 			}
 		}
 
 		else{ // if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
-			_logl(2,"Processing working servers queue ready event.");
+			_NOTEL(2,"Processing working servers queue ready event.");
 			workingServersQueue->reset_busy();
 			if(!sortedJobQueue->is_busy() && !sortedJobQueue->is_empty()){
 				JobEventPtr job = sortedJobQueue->dequeueJob();
 				workingServersQueue->enqueue(job,time);
 			}
 		}
-		//_log(3, (*eventList) << std::endl);
+		//_NOTE(3, (*eventList) << std::endl);
 	}
 	
-	_logl(1,"Finished simulation of " << time << " virtual seconds.");
-	_logl(0,"Simulation results: " << std::endl << statistics);
+	_NOTEL(1,"Finished simulation of " << time << " virtual seconds.");
+	_LOGL(0,"Simulation results: " << std::endl << statistics);
 	return 0;
 
 // Run the Unit tests
 #else
-	_logl(0,"Welcome to the unit tests.");
+	_NOTEL(0,"Welcome to the unit tests.");
 	test_accumulator(rand,statistics);
 	test_working_servers(workingServersQueue,sortOrder,statistics);
 	return 0;

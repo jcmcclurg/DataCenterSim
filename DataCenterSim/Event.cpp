@@ -24,7 +24,7 @@ double Event::toDouble(){
 	return -(this->time);
 }
 bool Event::lessThan(Event& other){
-	_logl(5,"Comparing " << this->toDouble() << " against " << other.toDouble());
+	_NOTEL(5,"Comparing " << this->toDouble() << " against " << other.toDouble());
 	return(this->toDouble() < other.toDouble());
 }
 bool Event::equals(Event& other){

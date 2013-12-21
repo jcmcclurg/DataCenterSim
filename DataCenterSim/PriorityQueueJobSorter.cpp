@@ -20,7 +20,7 @@ bool PriorityQueueJobSorter::enqueue(JobEventPtr job, double time){
 		*(this->sortOrder) = JobEvent::POWER_ESTIMATE;
 
 		double t = time + rand->sample_jobSortingTime();
-		_logl(3,"Adding to sorting queue (busy until time " << t << ")");
+		_NOTEL(3,"Adding to sorting queue (busy until time " << t << ")");
 		job->powerConsumption = rand->sample_power();
 		job->powerConsumptionEstimate = rand->sample_powerEstimate(job->powerConsumption);
 
@@ -30,7 +30,7 @@ bool PriorityQueueJobSorter::enqueue(JobEventPtr job, double time){
 			return true;
 		}
 	}
-	_logl(3,"Sorted queue forwarding enqueue request for " << *job);
+	_NOTEL(3,"Sorted queue forwarding enqueue request for " << *job);
 	return false;
 }
 
