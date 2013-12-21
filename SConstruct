@@ -11,4 +11,4 @@ env.Append(CPPDEFINES=['DEBUG=1'])
 # Do the compilation of all the sources
 #sources = Glob("DataCenterSim/*.cpp") + Glob("DataCenterSim/*.h")
 sources = Glob("DataCenterSim/*.cpp");
-env.Program(target = "DataCenterSim/main", source = sources)
+env.Program(target = "DataCenterSim/main", source = sources, LIBS=['boost_system-mt','boost_filesystem-mt','boost_regex-mt','libboost_program_options-mt'])

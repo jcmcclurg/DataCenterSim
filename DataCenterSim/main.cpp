@@ -59,6 +59,8 @@
 #include <iostream>
 #include <climits>
 #include <boost/pointer_cast.hpp>
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
 #include "PriorityQueueEventList.h"
 #include "PriorityQueueJobSorter.h"
 #include "PriorityQueueWorkingServers.h"
@@ -78,20 +80,18 @@
 #define SORTED_JOBS_LIST_LEN UNSORTED_JOBS_LIST_LEN
 #define NUM_SERVERS 32
 
-/*
- 1. Job arrives, with type chosen according to distribution. Schedule next job according to distribution.
- 2. If "unsorted jobs queue" is full, job is turned away.
- 3. Otherwise, job enters "unsorted jobs queue".
- 4. Wait until "sorted jobs queue" is no longer busy.
- 5. Enter "sorted jobs queue," and mark the queue as busy for O(_LOG(n)) time.
- 6. Wait until "available servers" queue is no longer full.
- 8. Enter "available servers" queue, and schedule exit time according to distribution.
- 9. Collect latency statistics with each exit.
- 
- Collect power statistics every time the number of available servers changes.
- */
+namespace
+{
+  const size_t ERROR_IN_COMMAND_LINE = 1;
+  const size_t SUCCESS = 0;
+  const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 
-int main(int argc, const char * argv[]){
+} // namespace
+ 
+
+// Boilerplate program options code from http://www.radmangames.com/programming/how-to-use-boost-program_options
+int main(int argc, char** argv)
+{
 	double seed = 0;
 
 	double power_mean = 300.0;				// Watts
@@ -108,6 +108,45 @@ int main(int argc, const char * argv[]){
 
 	double routing_time_min = sorting_time_min;
 	double routing_time_max = sorting_time_max;
+	try
+	{
+	/** Define and parse the program options
+	*/
+	namespace po = boost::program_options;
+	po::options_description desc("Options");
+	desc.add_options()
+	("help", "Print help messages")
+	("seed", po::value<double>(&seed), "Seed for random number generator")
+	("power_estimate_error_stdev", po::value<double>(&power_estimate_error_stdev), "Power estimate standard deviation")
+	("completion_time_stdev", po::value<double>(&completion_time_stdev), "Completion time standard deviation")
+	;
+
+	po::variables_map vm;
+	try
+	{
+		po::store(po::parse_command_line(argc, argv, desc),
+					vm); // can throw
+
+		/** --help option
+		*/
+		if ( vm.count("help")  )
+		{
+			std::cout << "Basic Command Line Parameter App" << std::endl
+			<< desc << std::endl;
+			return SUCCESS;
+		}
+
+		po::notify(vm); // throws on error, so do after help in case
+		// there are any problems
+	}
+	catch(po::error& e)
+	{
+		std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
+		std::cerr << desc << std::endl;
+		return ERROR_IN_COMMAND_LINE;
+	}
+
+    // BEGIN APPLICATION CODE //
 
 	DataCenterRandomPtr rand(new DataCenterRandom(
 			seed,
@@ -236,4 +275,17 @@ int main(int argc, const char * argv[]){
 	test_working_servers(workingServersQueue,sortOrder,statistics);
 	return 0;
 #endif
-}
+    // END APPLICATION CODE //
+
+  }
+  catch(std::exception& e)
+  {
+    std::cerr << "Unhandled Exception reached the top of main: "
+              << e.what() << ", application will now exit" << std::endl;
+    return ERROR_UNHANDLED_EXCEPTION;
+
+  }
+
+  return SUCCESS;
+
+} // main
