@@ -20,10 +20,11 @@ std::ostream& AccumulatorStatistics::toStream(std::ostream& out){
 			<< "}";
 }
 
-AccumulatorStatistics::AccumulatorStatistics(){
-	this->stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator("time_between_rejected_jobs.csv"));
-	this->stats[AccumulatorStatistics::TOTAL_ENERGY] = AccumulatorPtr(new Accumulator("total_energy.csv"));
-	this->stats[AccumulatorStatistics::LATENCY] = AccumulatorPtr(new Accumulator("latency.csv"));
+AccumulatorStatistics::AccumulatorStatistics(std::string filename){
+	this->filename = filename;
+	this->stats[AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS] = AccumulatorPtr(new Accumulator(filename + "time_between_rejected_jobs.csv"));
+	this->stats[AccumulatorStatistics::TOTAL_ENERGY] = AccumulatorPtr(new Accumulator(filename + "total_energy.csv"));
+	this->stats[AccumulatorStatistics::LATENCY] = AccumulatorPtr(new Accumulator(filename + "latency.csv"));
 }
 
 AccumulatorPtr AccumulatorStatistics::getAccumulator(StatisticType type){

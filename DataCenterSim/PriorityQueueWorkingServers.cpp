@@ -227,7 +227,8 @@ PriorityQueueWorkingServers::PriorityQueueWorkingServers(
 		AccumulatorPtr latency,
 		AccumulatorPtr totalEnergy,
 		PriorityTypePtr sortOrder,
-		std::string filename) :
+		std::string filename,
+		SortingDomain sorting_domain) :
 				BoundedPriorityQueue(size),
 				serverCurrents(size,1),
 				dppCalculator(size-1,size) {
@@ -240,6 +241,7 @@ PriorityQueueWorkingServers::PriorityQueueWorkingServers(
 	this->lastTime = -1;
 	this->lastTotalPower = 1;
 	this->filename = filename;
+	this->sorting_domain = sorting_domain;
 	this->setupDPPCalculator();
 
 	this->logFile.open(this->filename.c_str());
@@ -254,6 +256,20 @@ PriorityQueueWorkingServers::~PriorityQueueWorkingServers(){
 	this->logFile.close();
 }
 
+long PriorityQueueWorkingServers::findRandomIdleServer(){
+	std::vector<long> idleServers;
+	long i;
+	for(i = 0; i < this->max_size; i++){
+		// If the server at this position is idle.
+		if(!this->serverStack[i]){
+			idleServers.push_back(i);
+		}
+	}
+
+	i = this->rand->sample_randomRouting(((long) (idleServers.size())) - 1);
+	return idleServers[i];
+}
+
 // TODO: Fix implementation so that the priority queue saves us some search time. Right now, since we're doing the search separately, it's totally pointless to use a priority queue.
 bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 	*(this->sortOrder) = JobEvent::DIFFERENTIAL_CURRENT;
@@ -262,7 +278,12 @@ bool PriorityQueueWorkingServers::enqueue(JobEventPtr job, double time){
 	job->completionTime = rand->sample_completionTime();
 	job->powerConsumption = rand->sample_power();
 	if(BoundedPriorityQueue::enqueue(job)){
-		updateStack(findWorstCaseIdleServer(),job, time);
+		if(this->sorting_domain == PriorityQueueWorkingServers::POWER_AWARE){
+			updateStack(findWorstCaseIdleServer(),job, time);
+		}
+		else{ // if(this->sorting_domain == PriorityQueueWorkingServers::RANDOM){
+			updateStack(findRandomIdleServer(),job, time);
+		}
 		EventPtr ready(new Event(t, Event::WORKING_SERVERS_QUEUE_READY));
 		eventList->enqueue(ready);
 

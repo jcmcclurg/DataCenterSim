@@ -16,11 +16,12 @@
 
 class AccumulatorStatistics {
 	std::map<int, AccumulatorPtr > stats;
+	std::string filename;
 protected:
 	virtual std::ostream& toStream(std::ostream& out);
 public:
 	enum StatisticType{TIME_BETWEEN_REJECTED_JOBS, TOTAL_ENERGY, LATENCY};
-	AccumulatorStatistics();
+	AccumulatorStatistics(std::string filename);
 	virtual ~AccumulatorStatistics(){
 	}
 	virtual AccumulatorPtr getAccumulator(StatisticType type);

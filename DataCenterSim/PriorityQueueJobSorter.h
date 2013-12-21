@@ -21,6 +21,7 @@ class PriorityQueueJobSorter : public BoundedPriorityQueue {
 	DataCenterRandomPtr rand;
 	PriorityQueueEventListPtr eventList;
 	PriorityTypePtr sortOrder;
+	bool enable;
 protected:
 	virtual std::string name();
 	virtual std::ostream& toStream(std::ostream& out);
@@ -28,6 +29,8 @@ public:
 	virtual bool enqueue(JobEventPtr job, double time);
 	virtual EventPtr dequeue();
 	bool is_empty();
+	virtual bool is_full();
+	virtual bool is_busy();
 
 	virtual JobEventPtr dequeueJob();
 
@@ -36,7 +39,8 @@ public:
 				DataCenterRandomPtr rand,
 				PriorityQueueWorkingServersPtr workingServersQueue,
 				PriorityQueueEventListPtr eventList,
-				PriorityTypePtr sortOrder);
+				PriorityTypePtr sortOrder,
+				bool enable);
 };
 
 typedef typename boost::shared_ptr<PriorityQueueJobSorter> PriorityQueueJobSorterPtr;

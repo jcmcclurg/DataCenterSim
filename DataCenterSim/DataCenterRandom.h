@@ -27,8 +27,10 @@ typedef typename boost::random::variate_generator<PseudoRandom, ExponentialDistr
 typedef typename boost::random::uniform_real_distribution<double> UniformDistribution;
 typedef typename boost::random::variate_generator<PseudoRandom, UniformDistribution> UniformGenerator;
 
+
 class DataCenterRandom {
 	double seed;
+	bool roundUp;
 	const PseudoRandom  randomNumberStream;
 
 	const NormalDistribution powerDistribution;
@@ -38,6 +40,7 @@ class DataCenterRandom {
 	const ExponentialDistribution arrivalTimeDistribution;
 	const UniformDistribution jobSortingTimeDistribution;
 	const UniformDistribution jobRoutingTimeDistribution;
+	const UniformDistribution randomRoutingDistribution;
 
 	NormalGenerator sample_powerEstimationErrorDistribution;
 	NormalGenerator sample_powerDistribution;
@@ -46,6 +49,7 @@ class DataCenterRandom {
 	ExponentialGenerator sample_arrivalTimeDistribution;
 	UniformGenerator sample_jobSortingTimeDistribution;
 	UniformGenerator sample_jobRoutingTimeDistribution;
+	UniformGenerator sample_randomRoutingDistribution;
 protected:
 	virtual std::ostream& toStream(std::ostream& out);
 
@@ -73,6 +77,7 @@ public:
 	virtual ~DataCenterRandom(){
 	}
 
+	long sample_randomRouting(long max);
 	double sample_arrivalTime();
 	double sample_jobSortingTime();
 	double sample_jobRoutingTime();

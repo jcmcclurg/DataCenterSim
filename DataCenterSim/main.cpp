@@ -92,6 +92,7 @@ namespace
 // Boilerplate program options code from http://www.radmangames.com/programming/how-to-use-boost-program_options
 int main(int argc, char** argv)
 {
+	bool enable_sorting = true;
 	double seed = 0;
 
 	double power_mean = 300.0;				// Watts
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
 	("seed", po::value<double>(&seed), "Seed for random number generator")
 	("power_estimate_error_stdev", po::value<double>(&power_estimate_error_stdev), "Power estimate standard deviation")
 	("completion_time_stdev", po::value<double>(&completion_time_stdev), "Completion time standard deviation")
+	("enable_sorting", po::value<bool>(&enable_sorting), "Enable sorting")
 	;
 
 	po::variables_map vm;
@@ -167,7 +169,16 @@ int main(int argc, char** argv)
 			EVENT_LIST_LEN,
 			sortOrder));
 
-	AccumulatorStatistics statistics;
+	PriorityQueueWorkingServers::SortingDomain sortingDomain;
+	if(enable_sorting){
+		sortingDomain = PriorityQueueWorkingServers::POWER_AWARE;
+	}
+	else{
+		sortingDomain = PriorityQueueWorkingServers::RANDOM;
+	}
+	std::ostringstream s;
+	s << seed;
+	AccumulatorStatistics statistics(s.str());
 	PriorityQueueWorkingServersPtr workingServersQueue(new PriorityQueueWorkingServers(
 			NUM_SERVERS,
 			rand,
@@ -175,13 +186,15 @@ int main(int argc, char** argv)
 			statistics.getAccumulator(AccumulatorStatistics::LATENCY),
 			statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY),
 			sortOrder,
-			"server_currents.csv"));
+			s.str() + "server_currents.csv",
+			sortingDomain));
 	PriorityQueueJobSorterPtr sortedJobQueue(new PriorityQueueJobSorter(
 			SORTED_JOBS_LIST_LEN,
 			rand,
 			workingServersQueue,
 			eventList,
-			sortOrder));
+			sortOrder,
+			enable_sorting));
 	QueueJobBufferPtr unsortedJobQueue(new QueueJobBuffer(
 			UNSORTED_JOBS_LIST_LEN,
 			statistics.getAccumulator(AccumulatorStatistics::TIME_BETWEEN_REJECTED_JOBS),
@@ -195,6 +208,7 @@ int main(int argc, char** argv)
 	
 	_NOTEL(0,"Welcome to the data center stacked server simulator.");
 	_LOGL(1,"Initialization parameters: ");
+	_LOGL(1,"Sorting enabled: " << enable_sorting);
 	_LOGL(1,"Simulation time: " << MAX_TIME);
 	_LOGL(1,"Event list length: " << EVENT_LIST_LEN);
 	_LOGL(1,"Unsorted jobs list length: " << UNSORTED_JOBS_LIST_LEN);
@@ -220,6 +234,7 @@ int main(int argc, char** argv)
 				JobEventPtr nextJob(new JobEvent(t, Event::JOB_ARRIVAL, sortOrder));
 				eventList->enqueue(nextJob);
 
+
 				if(!unsortedJobQueue->enqueue(job)){
 					if(!sortedJobQueue->enqueue(job,time)){
 						workingServersQueue->enqueue(job,time);
@@ -230,35 +245,60 @@ int main(int argc, char** argv)
 			else{ // if(job->type == Event::JOB_FINISHED){
 				_NOTEL(2,"Processing job removal event.");
 				workingServersQueue->remove(job,time);
+				if(enable_sorting){
+					if(!sortedJobQueue->is_busy() && !sortedJobQueue->is_empty()){
+						JobEventPtr job = sortedJobQueue->dequeueJob();
+						workingServersQueue->enqueue(job,time);
+					}
+				}
+				else{
+					if(!unsortedJobQueue->is_empty()){
+						JobEventPtr job = unsortedJobQueue->dequeue();
+						workingServersQueue->enqueue(job,time);
+					}
+				}
 			}
 		}
 
 		else if(e->type == Event::SORTED_QUEUE_READY){
-			_NOTEL(2,"Processing sorted queue ready event.");
-			sortedJobQueue->reset_busy();
+			if(enable_sorting){
+				_NOTEL(2,"Processing sorted queue ready event.");
+				sortedJobQueue->reset_busy();
 
-			if(!sortedJobQueue->is_empty() && !workingServersQueue->is_busy() && !workingServersQueue->is_full()){
-				JobEventPtr job = sortedJobQueue->dequeueJob();
-				workingServersQueue->enqueue(job,time);
-			}
-
-			if(!unsortedJobQueue->is_empty()){
-				JobEventPtr job = unsortedJobQueue->dequeue();
-				if(!sortedJobQueue->enqueue(job,time)){
+				if(!sortedJobQueue->is_empty() && !workingServersQueue->is_busy() && !workingServersQueue->is_full()){
+					JobEventPtr job = sortedJobQueue->dequeueJob();
 					workingServersQueue->enqueue(job,time);
+				}
+
+				if(!unsortedJobQueue->is_empty()){
+					JobEventPtr job = unsortedJobQueue->dequeue();
+					if(!sortedJobQueue->enqueue(job,time)){
+						workingServersQueue->enqueue(job,time);
+					}
+				}
+				else{
+					_NOTEL(2,"Nothing for sorted queue to do.");
 				}
 			}
 			else{
-				_NOTEL(2,"Nothing for sorted queue to do.");
+				_NOTEL(0,"PROBLEM!!!");
 			}
 		}
 
 		else{ // if(e->type == Event::WORKING_SERVERS_QUEUE_READY){
 			_NOTEL(2,"Processing working servers queue ready event.");
 			workingServersQueue->reset_busy();
-			if(!sortedJobQueue->is_busy() && !sortedJobQueue->is_empty()){
-				JobEventPtr job = sortedJobQueue->dequeueJob();
-				workingServersQueue->enqueue(job,time);
+			if(enable_sorting){
+				if(!sortedJobQueue->is_busy() && !sortedJobQueue->is_empty()){
+					JobEventPtr job = sortedJobQueue->dequeueJob();
+					workingServersQueue->enqueue(job,time);
+				}
+			}
+			else{
+				if(!unsortedJobQueue->is_empty()){
+					JobEventPtr job = unsortedJobQueue->dequeue();
+					workingServersQueue->enqueue(job,time);
+				}
 			}
 		}
 		//_NOTE(3, (*eventList) << std::endl);
@@ -266,6 +306,9 @@ int main(int argc, char** argv)
 	
 	_NOTEL(1,"Finished simulation of " << time << " virtual seconds.");
 	_LOGL(0,"Simulation results: " << std::endl << statistics);
+	AccumulatorPtr latency = statistics.getAccumulator(AccumulatorStatistics::LATENCY);
+	AccumulatorPtr total_energy = statistics.getAccumulator(AccumulatorStatistics::TOTAL_ENERGY);
+	_LOGL(0, latency->getMean() << "$\\pm$" << latency->getCI(0.95) << " & " << total_energy->getMean() << "$\\pm$" << total_energy->getCI(0.95));
 	return 0;
 
 // Run the Unit tests

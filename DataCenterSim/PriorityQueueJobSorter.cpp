@@ -15,8 +15,26 @@ std::ostream& PriorityQueueJobSorter::toStream(std::ostream& out){
 	BoundedPriorityQueue::toStream(out);
 	return(out);
 }
+
+bool PriorityQueueJobSorter::is_busy(){
+	if(this->enable){
+		return BoundedPriorityQueue::is_busy();
+	}
+	else{
+		return this->workingServersQueue->is_busy();
+	}
+}
+
+bool PriorityQueueJobSorter::is_full(){
+	if(this->enable){
+		return BoundedPriorityQueue::is_full();
+	}
+	else{
+		return this->workingServersQueue->is_full();
+	}
+}
 bool PriorityQueueJobSorter::enqueue(JobEventPtr job, double time){
-	if(!is_empty() || workingServersQueue->is_busy() || workingServersQueue->is_full()){
+	if(this->enable && (!is_empty() || workingServersQueue->is_busy() || workingServersQueue->is_full())){
 		*(this->sortOrder) = JobEvent::POWER_ESTIMATE;
 
 		double t = time + rand->sample_jobSortingTime();
@@ -53,7 +71,9 @@ PriorityQueueJobSorter::PriorityQueueJobSorter(
 			DataCenterRandomPtr rand,
 			PriorityQueueWorkingServersPtr workingServersQueue,
 			PriorityQueueEventListPtr eventList,
-			PriorityTypePtr sortOrder) : BoundedPriorityQueue(size){
+			PriorityTypePtr sortOrder,
+			bool enable) : BoundedPriorityQueue(size){
+	this->enable = enable;
 	this->rand = rand;
 	this->workingServersQueue = workingServersQueue;
 	this->eventList = eventList;

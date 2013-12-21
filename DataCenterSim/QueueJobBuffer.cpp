@@ -36,6 +36,7 @@ bool QueueJobBuffer::enqueue(JobEventPtr e){
 	if(!is_empty() || sortedJobQueue->is_busy() || sortedJobQueue->is_full()){
 		if(!this->is_full()){
 			_NOTEL(4,"Job buffer enqueueing " << *e);
+			_NOTEL(4,"Because " << !is_empty() << "," <<  sortedJobQueue->is_busy() <<  "," << sortedJobQueue->is_full());
 			this->queue.push(e);
 			return true;
 		}

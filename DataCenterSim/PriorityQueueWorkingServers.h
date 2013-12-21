@@ -21,6 +21,7 @@
 typedef typename boost::numeric::ublas::matrix<double> Matrix;
 
 class PriorityQueueWorkingServers : public BoundedPriorityQueue {
+
 	std::ofstream logFile;
 	std::string filename;
 	double lastTime;
@@ -36,6 +37,7 @@ class PriorityQueueWorkingServers : public BoundedPriorityQueue {
 	std::map<long, JobEventPtr > serverStack;
 	double stringCurrent;
 	long findWorstCaseIdleServer();
+	long findRandomIdleServer();
 	bool invertMatrix(Matrix& input);
 	void setupDPPCalculator();
 	void updateStack(long i, JobEventPtr p, double time);
@@ -44,6 +46,9 @@ protected:
 	virtual std::ostream& toStream(std::ostream& out);
 
 public:
+	enum SortingDomain{POWER_AWARE,RANDOM};
+	SortingDomain sorting_domain;
+
 	PriorityQueueWorkingServers(
 			long size,
 			DataCenterRandomPtr rand,
@@ -51,7 +56,8 @@ public:
 			AccumulatorPtr latency,
 			AccumulatorPtr totalEnergy,
 			PriorityTypePtr sortOrder,
-			std::string filename);
+			std::string filename,
+			SortingDomain sorting_domain);
 	virtual ~PriorityQueueWorkingServers();
 
 	virtual bool enqueue(JobEventPtr job, double time);

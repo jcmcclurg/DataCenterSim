@@ -13,7 +13,15 @@ std::ostream& DataCenterRandom::toStream(std::ostream& out){
 			<< "   Routing time ~ Uniform(" << jobRoutingTimeDistribution.min() << "," << jobRoutingTimeDistribution.max() << ")" << std::endl
 			<< "   Interarrival time ~ Exponential(" << arrivalTimeDistribution.lambda() << ")" << std::endl
 			<< "   Power estimation error ~ Normal(" << powerEstimationErrorDistribution.mean() << "," << powerEstimationErrorDistribution.sigma() << ")" << std::endl
-			<< "}");
+			<< "} "
+			<< "," << sample_randomRouting(10)
+			<< "," << sample_arrivalTime()
+			<< "," << sample_jobSortingTime()
+			<< "," << sample_jobRoutingTime()
+			<< "," << sample_power()
+			<< "," << sample_completionTime()
+			<< "," << sample_powerEstimate(10)
+			);
 }
 
 DataCenterRandom::DataCenterRandom(
@@ -53,8 +61,23 @@ DataCenterRandom::DataCenterRandom(
 	sample_jobRoutingTimeDistribution(randomNumberStream,jobRoutingTimeDistribution),
 
 	powerEstimationErrorDistribution(0,powerEstimationErrorStdev),
-	sample_powerEstimationErrorDistribution(randomNumberStream, powerEstimationErrorDistribution){
+	sample_powerEstimationErrorDistribution(randomNumberStream, powerEstimationErrorDistribution),
+
+	randomRoutingDistribution(0,1),
+	sample_randomRoutingDistribution(randomNumberStream,randomRoutingDistribution){
+	this->roundUp = true;
 	this->seed = seed;
+}
+
+long DataCenterRandom::sample_randomRouting(long max){
+	if(this->roundUp){
+		this->roundUp = false;
+		return std::floor((max*((double) (sample_randomRoutingDistribution()))) + 0.5);
+	}
+	else{
+		this->roundUp = true;
+		return std::ceil((max*((double) (sample_randomRoutingDistribution()))) - 0.5);
+	}
 }
 
 double DataCenterRandom::sample_powerEstimate(double actualPower){
